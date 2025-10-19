@@ -32,12 +32,14 @@ public class PhysEngineSDK : ModuleRules
 		// 3. 设置预处理器定义 (等同于 add_definitions)
 		PublicDefinitions.Add("GLOBALBENCHMARK=1");
 		
-		PublicDefinitions.Add("USE_DOUBLE=1");
+		
+		PublicDefinitions.Add("USE_DOUBLE=0");
 		PublicDefinitions.Add("NTDDI_WIN11_DT=1");
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS1=1");
-		PublicDefinitions.Add("_WIN32_WINNT_WIN10_TH2=1");
-		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS3=1");
-		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS4=1");
+		PublicDefinitions.Add("_WIN32_WINNT_WIN10_TH2=2");
+		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS3=3");
+		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS4=4");
+		
 
 		// 4. 定位你的第三方SDK
 		// 这是获取当前.build.cs文件所在目录的标准方法

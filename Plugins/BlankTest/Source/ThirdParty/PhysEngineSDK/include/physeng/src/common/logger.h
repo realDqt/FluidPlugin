@@ -26,7 +26,7 @@ char* getTimeString();
 
 The log types include Debug, Info, Warn, Error, and Fatal.
 */
-enum LogType{
+enum class LogType{
     Debug=0,
     Info,
     Warn,
