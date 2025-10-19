@@ -1,0 +1,52 @@
+# Unreal Engine
+#
+# http://www.unrealengine.com
+# https://github.com/github/gitignore/blob/main/Global/UnrealEngine.gitignore
+
+# UE-生成的文件和文件夹
+# 这些文件和文件夹通常包含本地生成的数据、缓存或二进制文件。
+# 将它们添加到版本控制中会导致仓库膨胀，并可能引起合并冲突。
+
+# 编译后的二进制文件 (Windows, Mac, Linux, etc.)
+Binaries/
+
+# 构建过程中的中间文件
+Build/
+
+# 缓存的着色器、光照数据和其他派生数据
+DerivedDataCache/
+
+# 本地保存的配置、日志、截图、自动保存等
+Saved/
+
+# 编译和脚本生成过程中的临时文件
+Intermediate/
+
+# 插件的临时文件
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+
+# 特定于平台的文件夹
+Source/ThirdParty/lib/
+Source/ThirdParty/include/
+Source/ThirdParty/bin/
+
+# 本地解决方案和项目文件 (Visual Studio, Rider, Xcode)
+*.sln
+*.suo
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.db-shm
+*.VC.db-wal
+.vs/
+.idea/
+
+# Mac 本地文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
