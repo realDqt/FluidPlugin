@@ -15,7 +15,7 @@ uint3 gridSize;
 
 static void TestFluidPerformanceDemo()
 {
-	/*
+	
 	cudaInit(0, nullptr);
 
 	FluidWorld* fluidWorld = new FluidWorld(make_vec3r(-15, 0, -15), make_vec3r(15, 25, 15));
@@ -37,12 +37,12 @@ static void TestFluidPerformanceDemo()
 	viewer.camera_trans[2] = -60;
 
 	fluidWorld->initViewer(fluidIndex, viewer);
-	sdkCreateTimer(&timer);
+	//sdkCreateTimer(&timer);
 
 	int frame = 0;
 
 	viewer.updateCallback = [&]() {
-		sdkStartTimer(&timer);
+		//sdkStartTimer(&timer);
 		{
 			// PHY_PROFILE("grid system update");
 			fluidWorld->update(fluidIndex);
@@ -50,12 +50,12 @@ static void TestFluidPerformanceDemo()
 		}
 
 		fluidWorld->updateViewer(fluidIndex, viewer);
-		sdkStopTimer(&timer);
+		//sdkStopTimer(&timer);
 
 
 		if (frame % 100 == 0) {
-			float ifps = 1.f / (sdkGetAverageTimerValue(&timer) / 1000.f);
-			LOG_OSTREAM_INFO << "frame " << frame << ", fps=" << ifps << ", time=" << sdkGetTimerValue(&timer) / 1000.f << std::endl;
+			//float ifps = 1.f / (sdkGetAverageTimerValue(&timer) / 1000.f);
+			//LOG_OSTREAM_INFO << "frame " << frame << ", fps=" << ifps << ", time=" << sdkGetTimerValue(&timer) / 1000.f << std::endl;
 			BENCHMARK_REPORT();
 		}
 
@@ -63,13 +63,14 @@ static void TestFluidPerformanceDemo()
 	};
 
 	viewer.closeCallback = [&]() {
-		sdkDeleteTimer(&timer);
+		//sdkDeleteTimer(&timer);
 		delete fluidWorld;
 		return true;
 	};
 	viewer.isPause = true;
 	viewer.run();
-	*/
+	
+	
 }
 
 void UFluidTestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -78,6 +79,6 @@ void UFluidTestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("=== 每次游戏运行都打印 ==="));
 	UE_LOG(LogTemp, Warning, TEXT("FluidTestSubsystem::Initialize — 游戏实例启动！"));
 
-	
+	TestFluidPerformanceDemo();
 	
 }
