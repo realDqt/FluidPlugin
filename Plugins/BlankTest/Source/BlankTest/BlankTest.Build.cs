@@ -7,12 +7,126 @@ public class BlankTest : ModuleRules
 {
 	public BlankTest(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+		// 默认设置
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		
+		// 1. 设置 C++ 17 标准 (等同于 SET(CMAKE_CXX_STANDARD 17))
+		CppStandard = CppStandardVersion.Cpp17;
+		
+		// 2. 添加UE模块依赖
+		PublicDependencyModuleNames.AddRange(new string[] { "Core" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "CoreUObject", "Engine" });
+
+		
+		// 3. 设置预处理器定义 (等同于 add_definitions)
+		PublicDefinitions.Add("GLOBALBENCHMARK=1");
+
+		// (等同于 option() 和 if() 逻辑)
+		bool bEnableExtendedAlignedStorage = true; // 手动设置
+		if (bEnableExtendedAlignedStorage)
+		{
+			PublicDefinitions.Add("_ENABLE_EXTENDED_ALIGNED_STORAGE=1");
+		}
+		else
+		{
+			PublicDefinitions.Add("_DISABLE_EXTENDED_ALIGNED_STORAGE=1");
+		}
+		PublicDefinitions.Add("PE_USE_BACKEND_WRAPPER=1");
+
+		// 4. 定位你的第三方SDK
+		// 这是获取当前.build.cs文件所在目录的标准方法
+		string ModulePath = ModuleDirectory;
+		
+		// 导航到 "Source/ThirdParty/PhysEngineSDK"
+		string SdkPath = Path.GetFullPath(Path.Combine(ModulePath, "..", "ThirdParty", "PhysEngineSDK"));
+		
+		// --- 5. 设置库和头文件路径 (核心部分) ---
+		
+		// (等同于 set(ENGINE_LIB_DIR ...))
+		string LibPath = Path.Combine(SdkPath, "lib");
+		
+		// (等同于 set(ENGINE_INCLUDE_DIR ...) 和 set(TASKFLOW_INCLUDE_DIR ...))
+		string EngineIncludePath = Path.Combine(SdkPath, "include", "physeng", "src");
+		string TaskflowIncludePath = Path.Combine(SdkPath, "include", "physeng", "3rdparty", "taskflow");
+		// --- 新增：添加EIGEN路径 ---
+		// 假设 Eigen 位于 3rdparty/eigen 目录下
+		string EigenIncludePath = Path.Combine(SdkPath, "include", "physeng", "3rdparty", "eigen");
+		// --- 新增结束 ---
+
+		// 添加头文件搜索路径
+		PublicIncludePaths.Add(EngineIncludePath);
+		PublicIncludePaths.Add(TaskflowIncludePath);
+
+		// 添加库文件搜索路径
+		PublicLibraryPaths.Add(LibPath);
+		
+		// !! 重要 !!
+		// 你必须在这里显式列出所有需要链接的 .lib 文件名
+		// 我根据你的CMake错误历史推测了几个名字
+		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "EngineCudaCommon.lib"));
+		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "EngineCudaObject.lib"));
+		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "EngineCudaViewer.lib"));
+		// ... 在这里添加其他所有来自你SDK的.lib文件
+
+		
+		// 6. 添加运行时DLL (等同于 set(ENGINE_BIN_DIR ...))
+		// 这些是你的插件在运行时需要加载的.dll文件
+		string BinPath = Path.Combine(SdkPath, "include", "physeng", "3rdparty", "freeglut", "bin", "x64");
+		
+		// 自动查找BinPath下的所有.dll文件
+		if (Directory.Exists(BinPath))
+		{
+			string[] Dlls = Directory.GetFiles(BinPath, "*.dll");
+			foreach (string Dll in Dlls)
+			{
+				// 告诉UE在打包时要包含这个DLL
+				RuntimeDependencies.Add(Dll);
+				
+				// 告诉UE在启动时要加载这个DLL
+				PublicDelayLoadDLLs.Add(Path.GetFileName(Dll));
+			}
+		}
+
+		
+		// --- 7. 处理 CUDA 依赖 (最复杂的部分) ---
+		// (等同于 enable_language(CUDA) 和 find_package(CUDAToolkit))
+		
+		// UE需要知道CUDA SDK在哪里，以便链接cudart.lib等
+		string CudaSdkPath = System.Environment.GetEnvironmentVariable("CUDA_PATH");
+
+		if (!string.IsNullOrEmpty(CudaSdkPath))
+		{
+			PublicIncludePaths.Add(Path.Combine(CudaSdkPath, "include"));
+			PublicLibraryPaths.Add(Path.Combine(CudaSdkPath, "lib", "x64"));
+			
+			// 链接CUDA运行时库 (你的PhysEngine库依赖它)
+			PublicAdditionalLibraries.Add("cudart_static.lib");
+			// 你可能还需要: "cublas.lib", "cufft.lib" 等, 
+			// 取决于你的PhysEngine到底用了什么
+			
+			
+			// 1. 定义 CUDA lib 路径
+			string CudaLibPath = Path.Combine(CudaSdkPath, "lib", "x64");
+
+			// 2. 删除 PublicLibraryPaths.Add(...) 这一行
+
+			// 3. 在 PublicAdditionalLibraries 中提供完整路径
+			PublicAdditionalLibraries.Add(Path.Combine(CudaLibPath, "cudart_static.lib"));
+    
+			// 你可能还需要: 
+			PublicAdditionalLibraries.Add(Path.Combine(CudaLibPath, "cublas.lib"));
+			PublicAdditionalLibraries.Add(Path.Combine(CudaLibPath, "cufft.lib"));
+		}
+		else
+		{
+			// 如果找不到CUDA，构建会失败，并给出清晰的提示
+			throw new BuildException("PhysEngine plugin requires the NVIDIA CUDA SDK. Please install it and set the CUDA_PATH environment variable.");
+		}
+		
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
-				"E:\\UEProjects\\TestPlugin\\Plugins\\BlankTest\\Source\\BlankTest\\Private\\KD",
 			}
 			);
 				
