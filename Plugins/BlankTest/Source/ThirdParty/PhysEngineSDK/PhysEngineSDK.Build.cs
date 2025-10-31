@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+using System;
 using System.IO;
 using UnrealBuildTool;
 
@@ -83,7 +84,7 @@ public class PhysEngineSDK : ModuleRules
 		PublicAdditionalLibraries.Add(GlewLibs);
 		
 		string GlutLibs = Path.Combine(FreeglutLibPath, "freeglutd.lib"); // debug or release?
-		PublicAdditionalLibraries.Add(GlutLibs);
+		//PublicAdditionalLibraries.Add(GlutLibs);
 		GlutLibs = Path.Combine(FreeglutLibPath, "freeglut.lib");
 		PublicAdditionalLibraries.Add(GlutLibs);
 		// ---------------freeglut end-------------------
@@ -95,9 +96,9 @@ public class PhysEngineSDK : ModuleRules
 		// !! 重要 !!
 		// 你必须在这里显式列出所有需要链接的 .lib 文件名
 		// 我根据你的CMake错误历史推测了几个名字
-		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Debug", "EngineCudaCommon.lib"));
-		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Debug", "EngineCudaObject.lib"));
-		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Debug", "EngineCudaViewer.lib"));
+		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Release", "EngineCudaCommon.lib"));
+		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Release", "EngineCudaObject.lib"));
+		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Release", "EngineCudaViewer.lib"));
 		// ... 在这里添加其他所有来自你SDK的.lib文件
 		
 		
@@ -114,8 +115,28 @@ public class PhysEngineSDK : ModuleRules
 				// 告诉UE在打包时要包含这个DLL
 				RuntimeDependencies.Add(Dll);
 				
-				// 告诉UE在启动时要加载这个DLL
-				PublicDelayLoadDLLs.Add(Path.GetFileName(Dll));
+				string DllName = Path.GetFileName(Dll); // e.g., "glew32.dll"
+				string LibName = Path.GetFileNameWithoutExtension(Dll) + ".lib"; // e.g., "glew32.lib"
+				string LibFullPath = Path.Combine(FreeglutPath, "lib", "x64", LibName);
+				
+				if (DllName.Equals("glew32.dll", StringComparison.OrdinalIgnoreCase))
+				{
+					if (File.Exists(LibFullPath))
+					{
+						// 静态链接：告诉链接器在启动时就需要这个 .lib
+						PublicAdditionalLibraries.Add(LibFullPath);
+					}
+					else
+					{
+						System.Console.WriteLine("Warning: 静态链接失败，未找到 .lib 文件: " + LibFullPath);
+					}
+				}
+				else
+				{
+									
+					// 告诉UE在启动时要加载这个DLL
+					PublicDelayLoadDLLs.Add(Path.GetFileName(Dll));
+				}
 			}
 		}
 
