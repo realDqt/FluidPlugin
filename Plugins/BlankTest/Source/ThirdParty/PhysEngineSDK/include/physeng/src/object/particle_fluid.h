@@ -466,7 +466,7 @@ public:
     }
 
     virtual ~ParticleFluid() {
-        LOG_OSTREAM_DEBUG << "release particle fluid" << std::hex << &m_x << std::dec << std::endl;
+        //LOG_OSTREAM_DEBUG << "release particle fluid" << std::hex << &m_x << std::dec << std::endl;
         m_txph.release();
         
         m_ph.release();
@@ -492,7 +492,7 @@ public:
         m_n.release();
         m_f.release();
         // m_gradc.release();
-        LOG_OSTREAM_DEBUG << "release ParticleFluid finished"<<std::endl;
+        //LOG_OSTREAM_DEBUG << "release ParticleFluid finished"<<std::endl;
     }
 
     void init() {};

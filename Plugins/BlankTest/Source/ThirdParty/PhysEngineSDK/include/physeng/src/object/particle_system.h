@@ -46,7 +46,7 @@ public:
     // Release particle system
     virtual ~ParticleSystem() {
         // Log memory release
-        LOG_OSTREAM_DEBUG<<"release m_x 0x"<<std::hex<<&m_x<<std::dec<<std::endl;
+        //LOG_OSTREAM_DEBUG<<"release m_x 0x"<<std::hex<<&m_x<<std::dec<<std::endl;
 
         // Release memory for particle arrays
         m_x.release();
@@ -56,7 +56,7 @@ public:
         m_m.release();
 
         // Log release finished
-        LOG_OSTREAM_DEBUG<<"release ParticleSystem finished"<<std::endl;
+        //LOG_OSTREAM_DEBUG<<"release ParticleSystem finished"<<std::endl;
     }
 };
 

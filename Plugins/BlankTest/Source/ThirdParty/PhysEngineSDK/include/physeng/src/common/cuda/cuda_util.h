@@ -40,11 +40,7 @@ inline void cudaInit(int argc, char **argv){
 #define checkCudaError(err) __checkCudaError(err, __FILE__, __LINE__)
 inline void __checkCudaError(cudaError_t err, const char *file, const int line){
     if (cudaSuccess != err) {
-        fprintf(stderr,
-                "%s(%i) : CudaError()"
-                " %s : (%d) %s.\n",
-                file, line, static_cast<int>(err),
-                cudaGetErrorString(err));
+        fprintf(stderr,"error cuda");
         exit(-1);
     }
 }
@@ -60,11 +56,7 @@ inline void __checkCudaError(cudaError_t err, const char *file, const int line){
 inline void __checkCuda(const char *errMsg, const char *file, const int line){
     cudaError_t err = cudaGetLastError();
     if (cudaSuccess != err) {
-        fprintf(stderr,
-                "%s(%i) : getLastCudaError() CUDA error :"
-                " %s : (%d) %s.\n",
-                file, line, errMsg, static_cast<int>(err),
-                cudaGetErrorString(err));
+        fprintf(stderr,"error cuda");
         exit(-1);
     }
 }

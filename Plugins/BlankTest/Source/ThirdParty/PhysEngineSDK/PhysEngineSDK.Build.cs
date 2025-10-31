@@ -40,6 +40,8 @@ public class PhysEngineSDK : ModuleRules
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_TH2=2");
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS3=3");
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS4=4");
+		PublicDefinitions.Add("PE_USE_CUDA=5");
+		
 		//PublicDefinitions.Add("__APPLE__=0");
 		
 		

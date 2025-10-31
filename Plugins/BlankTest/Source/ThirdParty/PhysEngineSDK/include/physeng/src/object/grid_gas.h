@@ -172,7 +172,7 @@ class GasGrid
      * @brief GasGrid destructor.
      */
 	virtual ~GasGrid() {
-		LOG_OSTREAM_DEBUG<<"release m_density 0x"<<std::hex<<&m_density<<std::dec<<std::endl;
+		//LOG_OSTREAM_DEBUG<<"release m_density 0x"<<std::hex<<&m_density<<std::dec<<std::endl;
 		m_density.release();
 		m_tempDensity.release();
 		m_velocity.release();
@@ -180,7 +180,7 @@ class GasGrid
 		m_pressure.release();
 		m_divergence.release();
 		m_rigidFlag.release();
-		LOG_OSTREAM_DEBUG<<"release GridSystem finished"<<std::endl;
+		//LOG_OSTREAM_DEBUG<<"release GridSystem finished"<<std::endl;
 	}
 
 	/**

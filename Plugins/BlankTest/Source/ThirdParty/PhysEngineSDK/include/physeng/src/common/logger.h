@@ -61,11 +61,14 @@ extern std::string LOG_COLOR_RESET;
 #define LOG_OSTREAM(lt) \
     if constexpr (lt < LOG_THRES) ; \
     else std::cout<<LOG_COLORS[(int)lt] << '[' << getTimeString() << "][" << __FILENAME__ << ":" << __LINE__ << "] " << LOG_COLOR_RESET
+
+#define LOG_OSTREAM_2(lt) \
+    std::cout << lt << std::endl;
     
-#define LOG_OSTREAM_DEBUG LOG_OSTREAM(LogType::Debug)
-#define LOG_OSTREAM_INFO LOG_OSTREAM(LogType::Info)
-#define LOG_OSTREAM_WARN LOG_OSTREAM(LogType::Warn)
-#define LOG_OSTREAM_ERROR LOG_OSTREAM(LogType::Error)
+#define LOG_OSTREAM_DEBUG LOG_OSTREAM_2(0)
+#define LOG_OSTREAM_INFO LOG_OSTREAM_2(1)
+#define LOG_OSTREAM_WARN LOG_OSTREAM_2(2)
+#define LOG_OSTREAM_ERROR LOG_OSTREAM_2(3)
 
 /**
  * @brief This macro prints log messages to the standard output using printf
