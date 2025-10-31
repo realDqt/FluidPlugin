@@ -18,7 +18,7 @@
 #endif
 
 #if defined(__APPLE__) || defined(MACOSX)
-    #include <OpenGL/gl.h>
+    //#include <OpenGL/gl.h>
 #else
     #include <GL/gl.h>
     #ifdef __linux__

@@ -4,7 +4,7 @@
 #include <helper_cuda.h>
 #include <helper_math.h>
 
-#ifdef PE_USE_CUDA
+
 #define PE_CUDA_BLOCKS 256
 
 PHYS_NAMESPACE_BEGIN
@@ -92,4 +92,4 @@ inline void computeCudaThread(unsigned int n, unsigned int bs, unsigned int &nb,
 #endif
 
 PHYS_NAMESPACE_END
-#endif
+

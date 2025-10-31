@@ -11,12 +11,15 @@
 	#include <linear_math/common.h>
 	using Real = linear_math::Real;
 #else
+	/*
 	#if defined(USE_DOUBLE)
 		typedef double Real;
 	#else
 		typedef float Real;
 	#endif
+	*/
 #endif
+typedef float Real;
 
 //// const number
 #define REAL_PI Real(3.1415926535897932384626433832795029)

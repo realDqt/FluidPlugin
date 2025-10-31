@@ -33,12 +33,15 @@ public class PhysEngineSDK : ModuleRules
 		PublicDefinitions.Add("GLOBALBENCHMARK=1");
 		
 		
+		// TODO: 这些宏如何设置？
 		PublicDefinitions.Add("USE_DOUBLE=0");
 		PublicDefinitions.Add("NTDDI_WIN11_DT=1");
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS1=1");
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_TH2=2");
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS3=3");
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS4=4");
+		//PublicDefinitions.Add("__APPLE__=0");
+		
 		
 
 		// 4. 定位你的第三方SDK
@@ -66,6 +69,9 @@ public class PhysEngineSDK : ModuleRules
 		string MathPath = Path.Combine(EnginePath, "linear_math", "3rdparty", "eigen");
 		PublicIncludePaths.Add(MathPath);
 		
+		MathPath = Path.Combine(EnginePath, "linear_math", "3rdparty", "enoki", "include");
+		PublicIncludePaths.Add(MathPath);
+		
 		// ---------------freeglut begin-------------------
 		string FreeglutPath = Path.Combine(EnginePath, "3rdparty", "freeglut");
 		string FreeglutSrcPath = Path.Combine(FreeglutPath, "include");
@@ -91,7 +97,7 @@ public class PhysEngineSDK : ModuleRules
 		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Debug", "EngineCudaObject.lib"));
 		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Debug", "EngineCudaViewer.lib"));
 		// ... 在这里添加其他所有来自你SDK的.lib文件
-
+		
 		
 		// 6. 添加运行时DLL (等同于 set(ENGINE_BIN_DIR ...))
 		// 这些是你的插件在运行时需要加载的.dll文件
@@ -115,7 +121,6 @@ public class PhysEngineSDK : ModuleRules
 		// ---------------CUDA begin-------------------
 		// (等同于 enable_language(CUDA) 和 find_package(CUDAToolkit))
 		// (等同于 add_definitions(-DPE_USE_CUDA))
-		PublicDefinitions.Add("PE_USE_CUDA=1");
 
 
 		// UE需要知道CUDA SDK在哪里，以便链接cudart.lib等
@@ -124,8 +129,13 @@ public class PhysEngineSDK : ModuleRules
 		if (!string.IsNullOrEmpty(CudaSdkPath))
 		{
 			PublicIncludePaths.Add(Path.Combine(CudaSdkPath, "include"));
-			string CudaIncPath = Path.Combine(EnginePath, "3rdparty", "cuda", "common", "inc");
+			string CudaCommonPath = Path.Combine(EnginePath, "3rdparty", "cuda", "common");
+			string CudaIncPath = Path.Combine(CudaCommonPath, "inc");
 			PublicIncludePaths.Add(CudaIncPath);
+
+			string CudaCommonLibPath = Path.Combine(CudaCommonPath, "lib", "x64");
+			PublicAdditionalLibraries.Add(Path.Combine(CudaCommonLibPath, "freeglut.lib"));
+			PublicAdditionalLibraries.Add(Path.Combine(CudaCommonLibPath, "glew64.lib"));
 			
 			// 1. 定义 CUDA lib 路径
 			string CudaLibPath = Path.Combine(CudaSdkPath, "lib", "x64");

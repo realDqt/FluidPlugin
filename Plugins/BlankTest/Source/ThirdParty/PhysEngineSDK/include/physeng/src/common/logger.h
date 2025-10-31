@@ -26,7 +26,7 @@ char* getTimeString();
 
 The log types include Debug, Info, Warn, Error, and Fatal.
 */
-enum class LogType{
+enum class LogType2{
     Debug=0,
     Info,
     Warn,
@@ -144,7 +144,7 @@ public:
     @param type The log type.
     @param message The log message.
     */
-    void Log(const LogType& type, const std::string& message);
+    void Log(const LogType2& type, const std::string& message);
 
 private:
     std::string logFileName; /**< The name of the log file. */
@@ -152,10 +152,10 @@ private:
     std::size_t maxFileSize; /**< The maximum size of the log file. */
     std::size_t currentFileSize; /**< The current size of the log file. */
 
-    std::map<LogType, std::string> logTypeToString = {
-        {LogType::Error, "Error"},
-        {LogType::Warn, "Waring"},
-        {LogType::Info, "Info"}
+    std::map<LogType2, std::string> logTypeToString = {
+        {LogType2::Error, "Error"},
+        {LogType2::Warn, "Waring"},
+        {LogType2::Info, "Info"}
     };
 
     /**
@@ -194,7 +194,7 @@ private:
     @param type The log type.
     @param message The log message.
     */
-    void LogMessage(const LogType& type, const std::string& message);
+    void LogMessage(const LogType2& type, const std::string& message);
 };
 
 extern Logger logger;

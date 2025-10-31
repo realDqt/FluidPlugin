@@ -308,33 +308,33 @@ inline __host__ __device__ bool _d_projectPointInTriangle(const vec3r &p0, const
 
         if (b0 < 0.0)
         { // on edge 1-2
-            vec3r d = p2 - p1;
-            Real d2 = dot(d, d);
-            Real t = (d2 == static_cast<Real>(0.0)) ? static_cast<Real>(0.5) : dot(d, p - p1) / d2;
-            t = min(1.0, max(0.0, t));
+            vec3r nd = p2 - p1;
+            Real nd2 = dot(nd, nd);
+            Real nt = (nd2 == static_cast<Real>(0.0)) ? static_cast<Real>(0.5) : dot(nd, p - p1) / nd2;
+            nt = min(1.0, max(0.0, nt));
             b0 = 0.0;
-            b1 = (static_cast<Real>(1.0) - t);
-            b2 = t;
+            b1 = (static_cast<Real>(1.0) - nt);
+            b2 = nt;
         }
         else if (b1 < 0.0)
         { // on edge 2-0
-            vec3r d = p0 - p2;
-            Real d2 = dot(d, d);
-            Real t = (d2 == static_cast<Real>(0.0)) ? static_cast<Real>(0.5) : dot(d, p - p2) / d2;
-            t = min(1.0, max(0.0, t));
+            vec3r nd = p0 - p2;
+            Real nd2 = dot(nd, nd);
+            Real nt = (nd2 == static_cast<Real>(0.0)) ? static_cast<Real>(0.5) : dot(nd, p - p2) / nd2;
+            nt = min(1.0, max(0.0, nt));
             b1 = 0.0;
-            b2 = (static_cast<Real>(1.0) - t);
-            b0 = t;
+            b2 = (static_cast<Real>(1.0) - nt);
+            b0 = nt;
         }
         else if (b2 < 0.0)
         { // on edge 0-1
-            vec3r d = p1 - p0;
-            Real d2 = dot(d, d);
-            Real t = (d2 == static_cast<Real>(0.0)) ? static_cast<Real>(0.5) : dot(d, p - p0) / d2;
-            t = min(1.0, max(0.0, t));
+            vec3r nd = p1 - p0;
+            Real nd2 = dot(nd, nd);
+            Real nt = (nd2 == static_cast<Real>(0.0)) ? static_cast<Real>(0.5) : dot(nd, p - p0) / nd2;
+            nt = min(1.0, max(0.0, nt));
             b2 = 0.0;
-            b0 = (static_cast<Real>(1.0) - t);
-            b1 = t;
+            b0 = (static_cast<Real>(1.0) - nt);
+            b1 = nt;
         }
     }
 
