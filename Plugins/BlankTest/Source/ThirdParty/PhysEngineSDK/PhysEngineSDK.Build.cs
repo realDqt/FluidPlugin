@@ -43,8 +43,6 @@ public class PhysEngineSDK : ModuleRules
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS4=4");
 		PublicDefinitions.Add("PE_USE_CUDA=5");
 		
-		//PublicDefinitions.Add("__APPLE__=0");
-		
 		
 
 		// 4. 定位你的第三方SDK
@@ -83,9 +81,7 @@ public class PhysEngineSDK : ModuleRules
 		string GlewLibs = Path.Combine(FreeglutLibPath, "glew32.lib");
 		PublicAdditionalLibraries.Add(GlewLibs);
 		
-		string GlutLibs = Path.Combine(FreeglutLibPath, "freeglutd.lib"); // debug or release?
-		//PublicAdditionalLibraries.Add(GlutLibs);
-		GlutLibs = Path.Combine(FreeglutLibPath, "freeglut.lib");
+		string GlutLibs = Path.Combine(FreeglutLibPath, "freeglut.lib"); // debug or release?
 		PublicAdditionalLibraries.Add(GlutLibs);
 		// ---------------freeglut end-------------------
 		
@@ -102,6 +98,7 @@ public class PhysEngineSDK : ModuleRules
 		// ... 在这里添加其他所有来自你SDK的.lib文件
 		
 		
+		/*
 		// 6. 添加运行时DLL (等同于 set(ENGINE_BIN_DIR ...))
 		// 这些是你的插件在运行时需要加载的.dll文件
 		string BinPath = Path.Combine(SdkPath, "include", "physeng", "3rdparty", "freeglut", "bin", "x64");
@@ -139,6 +136,7 @@ public class PhysEngineSDK : ModuleRules
 				}
 			}
 		}
+		*/
 
 		
 		// ---------------CUDA begin-------------------
@@ -187,6 +185,6 @@ public class PhysEngineSDK : ModuleRules
 			throw new BuildException("PhysEngine plugin requires the NVIDIA CUDA SDK. Please install it and set the CUDA_PATH environment variable.");
 		}
 		// ---------------CUDA end-------------------
-
+		
 	}
 }
