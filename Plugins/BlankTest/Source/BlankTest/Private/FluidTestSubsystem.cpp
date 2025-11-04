@@ -69,6 +69,7 @@ void TestFluidPerformanceDemo(int argc, char** argv) {
     };
     viewer.isPause = true;
     viewer.run();
+    
 }
 
 void UFluidTestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
