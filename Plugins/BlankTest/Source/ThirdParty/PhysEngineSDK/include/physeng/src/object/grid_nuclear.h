@@ -25,9 +25,9 @@ public:
     }
 
     virtual ~Nuclear() {
-        LOG_OSTREAM_DEBUG << "release grid nuclear" << std::hex << &m_density << std::dec << std::endl;
+        //LOG_OSTREAM_DEBUG << "release grid nuclear" << std::hex << &m_density << std::dec << std::endl;
         
-        LOG_OSTREAM_DEBUG << "release grid nuclear finished"<<std::endl;
+        //LOG_OSTREAM_DEBUG << "release grid nuclear finished"<<std::endl;
     }
 
     /**
