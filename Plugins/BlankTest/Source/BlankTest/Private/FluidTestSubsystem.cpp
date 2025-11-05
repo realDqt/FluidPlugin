@@ -2,10 +2,11 @@
 #include "FluidTestSubsystem.h"
 #include "Engine/Engine.h"
 
-#include "object/gas_system.h"
-#include "object/grid_gas.h"
+#include "object/fluid_system.h"
+#include "object/particle_fluid.h"
 #include "object/config.h"
 #include "common/timer.h"
+#include "object/fluid_world.h"
 
 #include "Stats/Stats.h"
 
@@ -16,35 +17,23 @@ uint numParticles = 0;
 
 StopWatchInterface *timer = NULL;
 
-static GasWorld* gasWorld = nullptr;
-
-void TestFluidPerformanceDemo(int argc, char** argv) {
-	int scene = 0;
-
+static FluidWorld* fluidWorld = nullptr;
+void TestFluidPerformanceDemo(int argc, char** argv)
+{
 	cudaInit(argc, argv);
 
-	gasWorld = new GasWorld();
+	fluidWorld = new FluidWorld(make_vec3r(-15, 0, -15), make_vec3r(15, 25, 15));
+	int fluidIndex = fluidWorld->initFluidSystem(make_vec3r(-4, 9, -4), make_vec3r(7, 10, 8) * 1.8, 0.0f, 0.05f);
 
-	check(gasWorld != nullptr);
 
-	int gasIndex = gasWorld->initGasSystem(make_vec3r(0.0f), 0.000002f, 0.000000f, 4.0f, 5.0f, 0.001f);
-
-	//printf("气体标识：%d\n", gasIndex);
-	if(gasIndex < 0){
+	printf("Fluid Symbol:%d\n", fluidIndex);
+    
+	if (fluidIndex < 0) {
 		exit(0);
 	}
+	printf("水体粒子数：%d\n", fluidWorld->getFluid(fluidIndex)->getCurNumParticles());
 
-	gasWorld->getGas(gasIndex)->addGasSource(make_vec3r(-1.2f, -1.0f, 0.0f), 0.5f, make_vec3r(1.0f, 0.0f, 0.0f), 1.0f);
-	gasWorld->getGas(gasIndex)->addBox(make_vec3r(0, -0.7, 0), make_vec3r(0.8, 1.5, 0.8));
-	gasWorld->setRenderData(gasIndex, make_vec3r(255 / 255.0f, 255 / 255.0f, 255 / 255.0f), make_float3(0, -1, 0), 0.06f, 100);
-
-	/*
-	for (int i = 0; i < 10; ++i)
-	{
-		gasWorld->update(0);
-		UE_LOG(LogTemp, Warning, TEXT("end smi for %d"), i);
-	}
-	*/
+	fluidWorld->completeInit(fluidIndex);
 }
 
 void UFluidTestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -64,13 +53,13 @@ bool UFluidTestSubsystem::IsTickable() const
 
 void UFluidTestSubsystem::Tick(float DeltaTime)
 {
-	if (gasWorld)
+	if (fluidWorld)
 	{
-		gasWorld->update(0); //这行导致crash
-		UE_LOG(LogTemp, Warning, TEXT("gasWorld != null"));
+		fluidWorld->update(0); //这行导致crash
+		UE_LOG(LogTemp, Warning, TEXT("fluidWorld != null"));
 	}
 	else {
-		UE_LOG(LogTemp, Warning, TEXT("gasWorld == null"));
+		UE_LOG(LogTemp, Warning, TEXT("fluidWorld == null"));
 	}
 	static int curFrame = 0;
 	UE_LOG(LogTemp, Warning, TEXT("Current Frame = %d"), curFrame++);
