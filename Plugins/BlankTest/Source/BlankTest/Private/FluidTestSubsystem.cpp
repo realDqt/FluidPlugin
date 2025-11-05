@@ -51,7 +51,9 @@ bool UFluidTestSubsystem::IsTickable() const
 
 void UFluidTestSubsystem::Tick(float DeltaTime)
 {
-	return;
+	gasWorld->update(0);
+	static int curFrame = 0;
+	UE_LOG(LogTemp, Warning, TEXT("Current Frame = %d"), curFrame);
 }
 
 void UFluidTestSubsystem::Deinitialize()
