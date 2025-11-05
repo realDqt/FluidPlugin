@@ -4,7 +4,9 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Tickable.h" // 必须包含这个头文件
+#include "object/gas_world.h"
 #include "FluidTestSubsystem.generated.h"
+
 
 UCLASS()
 class UFluidTestSubsystem : public UGameInstanceSubsystem, public FTickableGameObject // 继承 FTickableGameObject
@@ -32,5 +34,5 @@ public:
 	virtual bool IsTickable() const override;
 	//~ End FTickableGameObject Interface
 
-	class GasWorld* gasWorld;
+	GasWorld* gasWorld = nullptr;
 };
