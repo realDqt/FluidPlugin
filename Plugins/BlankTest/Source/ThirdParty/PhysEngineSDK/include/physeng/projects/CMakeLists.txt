@@ -1,2 +1,0 @@
-add_subdirectory(fluid_cuda_demo)
-add_subdirectory(smoke_cuda_demo)
