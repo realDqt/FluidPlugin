@@ -10,7 +10,6 @@
 
 // #include "math/math.h"
 #include "common/real.h"
-/*
 #ifndef USE_DOUBLE
 #include "helper_math.h"
 
@@ -20,12 +19,6 @@
 #else
 static_assert("double unimplemented");
 #endif
-*/
-#include "helper_math.h"
-
-#define make_vec2r(...) make_float2(__VA_ARGS__)
-#define make_vec3r(...) make_float3(__VA_ARGS__)
-#define make_vec4r(...) make_float4(__VA_ARGS__)
 
 // typedef vec2<float> vec2f;
 // typedef vec3<float> vec3f;
@@ -35,7 +28,6 @@ static_assert("double unimplemented");
 // typedef matrix4<float> matrix4f;
 // typedef quaternion<float> quaternionf;
 
-/*
 #ifndef USE_DOUBLE
 typedef float2 vec2r;
 typedef float3 vec3r;
@@ -46,10 +38,7 @@ typedef float4 vec4r;
 typedef double3 vec3r;
 typedef double4 vec4r;
 #endif
-*/
-typedef float2 vec2r;
-typedef float3 vec3r;
-typedef float4 vec4r;
+
 /**
  * Compute the inverse of a 3x3 matrix.
  * 

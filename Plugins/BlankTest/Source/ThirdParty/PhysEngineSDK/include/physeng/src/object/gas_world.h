@@ -2,7 +2,7 @@
 #include "nuclear_system.h"
 #include "config.h"
 #include <vector>
-#include "cuda_viewer/cuda_viewer.h"
+
 
 #define GAS_GRID_SIZE 60
 #define NUCLEAR_GRID_SIZE 100
@@ -72,16 +72,6 @@ public:
      * @return Real 
      */
     Real getAverageDensity(int index);
-
-    /**
-     * @brief Initialize a CudaViewer for visualization of a gas system at the specified index.
-     */
-    void initViewer(int index, CudaViewer& viewer);
-
-    /**
-     * @brief Update the CudaViewer for visualization of a gas system at the specified index.
-     */
-    void updateViewer(int index, CudaViewer& viewer);
 
     /**
      * @brief Set whether a gas system at the specified index should dissipate.

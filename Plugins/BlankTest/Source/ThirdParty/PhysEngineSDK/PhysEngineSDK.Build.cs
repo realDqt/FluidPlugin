@@ -35,7 +35,7 @@ public class PhysEngineSDK : ModuleRules
 		
 		
 		// TODO: 这些宏如何设置？
-		PublicDefinitions.Add("USE_DOUBLE=0");
+		//PublicDefinitions.Add("USE_DOUBLE=0");
 		PublicDefinitions.Add("NTDDI_WIN11_DT=1");
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_RS1=1");
 		PublicDefinitions.Add("_WIN32_WINNT_WIN10_TH2=2");
@@ -73,71 +73,13 @@ public class PhysEngineSDK : ModuleRules
 		MathPath = Path.Combine(EnginePath, "linear_math", "3rdparty", "enoki", "include");
 		PublicIncludePaths.Add(MathPath);
 		
-		// ---------------freeglut begin-------------------
-		string FreeglutPath = Path.Combine(EnginePath, "3rdparty", "freeglut");
-		string FreeglutSrcPath = Path.Combine(FreeglutPath, "include");
-		string FreeglutLibPath = Path.Combine(FreeglutPath, "lib", "x64");
-		PublicIncludePaths.Add(FreeglutSrcPath);
-		string GlewLibs = Path.Combine(FreeglutLibPath, "glew32.lib");
-		PublicAdditionalLibraries.Add(GlewLibs);
-		
-		string GlutLibs = Path.Combine(FreeglutLibPath, "freeglut.lib"); // debug or release?
-		PublicAdditionalLibraries.Add(GlutLibs);
-		// ---------------freeglut end-------------------
-		
-
-		// 添加库文件搜索路径
-		PublicLibraryPaths.Add(LibPath);
 		
 		// !! 重要 !!
 		// 你必须在这里显式列出所有需要链接的 .lib 文件名
 		// 我根据你的CMake错误历史推测了几个名字
 		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Release", "EngineCudaCommon.lib"));
 		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Release", "EngineCudaObject.lib"));
-		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "Release", "EngineCudaViewer.lib"));
 		// ... 在这里添加其他所有来自你SDK的.lib文件
-		
-		
-		/*
-		// 6. 添加运行时DLL (等同于 set(ENGINE_BIN_DIR ...))
-		// 这些是你的插件在运行时需要加载的.dll文件
-		string BinPath = Path.Combine(SdkPath, "include", "physeng", "3rdparty", "freeglut", "bin", "x64");
-		
-		// 自动查找BinPath下的所有.dll文件
-		if (Directory.Exists(BinPath))
-		{
-			string[] Dlls = Directory.GetFiles(BinPath, "*.dll");
-			foreach (string Dll in Dlls)
-			{
-				// 告诉UE在打包时要包含这个DLL
-				RuntimeDependencies.Add(Dll);
-				
-				string DllName = Path.GetFileName(Dll); // e.g., "glew32.dll"
-				string LibName = Path.GetFileNameWithoutExtension(Dll) + ".lib"; // e.g., "glew32.lib"
-				string LibFullPath = Path.Combine(FreeglutPath, "lib", "x64", LibName);
-				
-				if (DllName.Equals("glew32.dll", StringComparison.OrdinalIgnoreCase))
-				{
-					if (File.Exists(LibFullPath))
-					{
-						// 静态链接：告诉链接器在启动时就需要这个 .lib
-						PublicAdditionalLibraries.Add(LibFullPath);
-					}
-					else
-					{
-						System.Console.WriteLine("Warning: 静态链接失败，未找到 .lib 文件: " + LibFullPath);
-					}
-				}
-				else
-				{
-									
-					// 告诉UE在启动时要加载这个DLL
-					PublicDelayLoadDLLs.Add(Path.GetFileName(Dll));
-				}
-			}
-		}
-		*/
-
 		
 		// ---------------CUDA begin-------------------
 		// (等同于 enable_language(CUDA) 和 find_package(CUDAToolkit))
@@ -153,10 +95,6 @@ public class PhysEngineSDK : ModuleRules
 			string CudaCommonPath = Path.Combine(EnginePath, "3rdparty", "cuda", "common");
 			string CudaIncPath = Path.Combine(CudaCommonPath, "inc");
 			PublicIncludePaths.Add(CudaIncPath);
-
-			string CudaCommonLibPath = Path.Combine(CudaCommonPath, "lib", "x64");
-			PublicAdditionalLibraries.Add(Path.Combine(CudaCommonLibPath, "freeglut.lib"));
-			PublicAdditionalLibraries.Add(Path.Combine(CudaCommonLibPath, "glew64.lib"));
 			
 			// 1. 定义 CUDA lib 路径
 			string CudaLibPath = Path.Combine(CudaSdkPath, "lib", "x64");

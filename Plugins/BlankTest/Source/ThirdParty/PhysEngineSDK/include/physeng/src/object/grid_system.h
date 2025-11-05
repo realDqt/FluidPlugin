@@ -376,7 +376,7 @@ class GridSystem
 	}
 
 	virtual ~GridSystem() {
-		//LOG_OSTREAM_DEBUG<<"release m_density 0x"<<std::hex<<&m_density<<std::dec<<std::endl;
+		LOG_OSTREAM_DEBUG<<"release m_density 0x"<<std::hex<<&m_density<<std::dec<<std::endl;
 		m_divergence.release();
 		m_pressure.release();
 		m_tempPressure.release();
@@ -387,7 +387,7 @@ class GridSystem
 		m_velocity.release();
 		m_tempVelocity.release();
 		m_vorticity.release();
-		//LOG_OSTREAM_DEBUG<<"release GridSystem finished"<<std::endl;
+		LOG_OSTREAM_DEBUG<<"release GridSystem finished"<<std::endl;
 	}
 
 };

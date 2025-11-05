@@ -4,7 +4,7 @@
 #include <helper_cuda.h>
 #include <helper_math.h>
 
-
+#ifdef PE_USE_CUDA
 #define PE_CUDA_BLOCKS 256
 
 PHYS_NAMESPACE_BEGIN
@@ -40,7 +40,8 @@ inline void cudaInit(int argc, char **argv){
 #define checkCudaError(err) __checkCudaError(err, __FILE__, __LINE__)
 inline void __checkCudaError(cudaError_t err, const char *file, const int line){
     if (cudaSuccess != err) {
-        fprintf(stderr,"error cuda");
+        fprintf(stderr,
+                "cuda error");
         exit(-1);
     }
 }
@@ -56,7 +57,8 @@ inline void __checkCudaError(cudaError_t err, const char *file, const int line){
 inline void __checkCuda(const char *errMsg, const char *file, const int line){
     cudaError_t err = cudaGetLastError();
     if (cudaSuccess != err) {
-        fprintf(stderr,"error cuda");
+        fprintf(stderr,
+                "cuda error");
         exit(-1);
     }
 }
@@ -84,4 +86,4 @@ inline void computeCudaThread(unsigned int n, unsigned int bs, unsigned int &nb,
 #endif
 
 PHYS_NAMESPACE_END
-
+#endif

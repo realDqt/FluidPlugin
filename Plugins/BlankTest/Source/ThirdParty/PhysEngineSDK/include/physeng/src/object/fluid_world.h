@@ -3,7 +3,6 @@
 #include "gas_system.h"
 #include "config.h"
 #include <vector>
-#include "cuda_viewer/cuda_viewer.h"
 
 #define MAX_PARTICLE 200000
 #define FLUID_GRID_SIZE 64
@@ -70,16 +69,6 @@ public:
      * @brief Add a sandpile-shaped fluid system to the simulation.
      */
     void addSandpile();
-
-    /**
-     * @brief Initialize a CudaViewer for visualization of a fluid system at the specified index.
-     */
-    void initViewer(int index, CudaViewer& viewer);
-
-    /**
-     * @brief Update the CudaViewer for visualization of a fluid system at the specified index.
-     */
-    void updateViewer(int index, CudaViewer& viewer);
 
     /**
      * @brief Update the simulation for a fluid system at the specified index.

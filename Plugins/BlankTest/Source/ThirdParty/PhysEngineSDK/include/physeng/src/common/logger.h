@@ -5,7 +5,7 @@
 #include <fstream>
 #include <map>
 
-#define LOG_THRES LogType::Debug
+#define LOG_THRES LogType2::Debug
 
 //// filename
 #ifdef __APPLE__
@@ -26,7 +26,7 @@ char* getTimeString();
 
 The log types include Debug, Info, Warn, Error, and Fatal.
 */
-enum class LogType2{
+enum LogType2{
     Debug=0,
     Info,
     Warn,
@@ -61,14 +61,11 @@ extern std::string LOG_COLOR_RESET;
 #define LOG_OSTREAM(lt) \
     if constexpr (lt < LOG_THRES) ; \
     else std::cout<<LOG_COLORS[(int)lt] << '[' << getTimeString() << "][" << __FILENAME__ << ":" << __LINE__ << "] " << LOG_COLOR_RESET
-
-#define LOG_OSTREAM_2(lt) \
-    std::cout << lt << std::endl;
     
-#define LOG_OSTREAM_DEBUG LOG_OSTREAM_2(0)
-#define LOG_OSTREAM_INFO LOG_OSTREAM_2(1)
-#define LOG_OSTREAM_WARN LOG_OSTREAM_2(2)
-#define LOG_OSTREAM_ERROR LOG_OSTREAM_2(3)
+#define LOG_OSTREAM_DEBUG LOG_OSTREAM(LogType2::Debug)
+#define LOG_OSTREAM_INFO LOG_OSTREAM(LogType2::Info)
+#define LOG_OSTREAM_WARN LOG_OSTREAM(LogType2::Warn)
+#define LOG_OSTREAM_ERROR LOG_OSTREAM(LogType2::Error)
 
 /**
  * @brief This macro prints log messages to the standard output using printf
@@ -93,7 +90,7 @@ extern std::string LOG_COLOR_RESET;
 @param format The format string for the log message.
 @param ... The variable arguments for the format string.
 */
-#define LOG_PRINT_DEBUG(format, ...) LOG_PRINT(LogType::Debug)
+#define LOG_PRINT_DEBUG(format, ...) LOG_PRINT(LogType2::Debug)
 
 /**
 @brief Prints a log message with the Info log type.
@@ -101,7 +98,7 @@ extern std::string LOG_COLOR_RESET;
 @param format The format string for the log message.
 @param ... The variable arguments for the format string.
 */
-#define LOG_PRINT_INFO(format, ...) LOG_PRINT(LogType::Info)
+#define LOG_PRINT_INFO(format, ...) LOG_PRINT(LogType2::Info)
 
 /**
 @brief Prints a log message with the Warn log type.
@@ -109,7 +106,7 @@ extern std::string LOG_COLOR_RESET;
 @param format The format string for the log message.
 @param ... The variable arguments for the format string.
 */
-#define LOG_PRINT_WARN(format, ...) LOG_PRINT(LogType::Warn)
+#define LOG_PRINT_WARN(format, ...) LOG_PRINT(LogType2::Warn)
 
 /**
 @brief Prints a log message with the Error log type.
@@ -117,7 +114,7 @@ extern std::string LOG_COLOR_RESET;
 @param format The format string for the log message.
 @param ... The variable arguments for the format string.
 */
-#define LOG_PRINT_ERROR(format, ...) LOG_PRINT(LogType::Error)
+#define LOG_PRINT_ERROR(format, ...) LOG_PRINT(LogType2::Error)
 
 /**
  * @brief The Logger class is responsible for logging messages to a file.
