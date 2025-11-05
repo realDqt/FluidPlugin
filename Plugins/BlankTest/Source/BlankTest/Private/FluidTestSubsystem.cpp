@@ -24,7 +24,7 @@ void TestFluidPerformanceDemo(int argc, char** argv, GasWorld*& gasWorld) {
 
 	int gasIndex = gasWorld->initGasSystem(make_vec3r(0.0f), 0.000002f, 0.000000f, 4.0f, 5.0f, 0.001f);
 
-	printf("气体标识：%d\n", gasIndex);
+	//printf("气体标识：%d\n", gasIndex);
 	if(gasIndex < 0){
 		exit(0);
 	}
@@ -51,7 +51,7 @@ bool UFluidTestSubsystem::IsTickable() const
 
 void UFluidTestSubsystem::Tick(float DeltaTime)
 {
-	gasWorld->update(0);
+	//gasWorld->update(0);
 	static int curFrame = 0;
 	UE_LOG(LogTemp, Warning, TEXT("Current Frame = %d"), curFrame);
 }
