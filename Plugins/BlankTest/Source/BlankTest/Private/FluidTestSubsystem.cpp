@@ -16,7 +16,9 @@ uint numParticles = 0;
 
 StopWatchInterface *timer = NULL;
 
-void TestFluidPerformanceDemo(int argc, char** argv, GasWorld*& gasWorld) {
+static GasWorld* gasWorld = nullptr;
+
+void TestFluidPerformanceDemo(int argc, char** argv) {
 	int scene = 0;
 
 	cudaInit(argc, argv);
@@ -51,7 +53,7 @@ void UFluidTestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("=== 每次游戏运行都打印 ==="));
 	UE_LOG(LogTemp, Warning, TEXT("FluidTestSubsystem::Initialize — 游戏实例启动！"));
 
-	TestFluidPerformanceDemo(0, nullptr, gasWorld);
+	TestFluidPerformanceDemo(0, nullptr);
 	
 }
 

@@ -34,5 +34,4 @@ public:
 	virtual bool IsTickable() const override;
 	//~ End FTickableGameObject Interface
 
-	GasWorld* gasWorld = nullptr;
 };
