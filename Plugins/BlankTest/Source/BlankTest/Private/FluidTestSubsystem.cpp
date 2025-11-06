@@ -7,7 +7,7 @@
 #include "object/config.h"
 #include "common/timer.h"
 #include "object/fluid_world.h"
-
+#include "Engine/World.h"
 #include "Stats/Stats.h"
 
 using namespace physeng;
@@ -43,6 +43,7 @@ void UFluidTestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	UE_LOG(LogTemp, Warning, TEXT("FluidTestSubsystem::Initialize — 游戏实例启动！"));
 
 	TestFluidPerformanceDemo(0, nullptr);
+	positionHost = VecArray<vec3r, CPU>(fluidWorld->getFluid(0)->getCurNumParticles());
 }
 
 bool UFluidTestSubsystem::IsTickable() const
@@ -59,18 +60,14 @@ void UFluidTestSubsystem::Tick(float DeltaTime)
 		auto fluid = fluidWorld->getFluid(0);
 		check(fluid)
 		auto& positionDevice = fluid->pf.getPositionRef();
-		if (positionHost.size() != positionDevice.size())
-		{
-			positionHost = VecArray<vec3r, CPU>(positionDevice.size());
-		}
-		copyArray<vec3r, MemType::CPU, MemType::GPU>(&positionHost.m_data, &positionDevice.m_data, 0, positionDevice.size());
-		UE_LOG(LogTemp, Warning, TEXT("fluidWorld != null"));
+		copyArray<vec3r, MemType::CPU, MemType::GPU>(&positionHost.m_data, &positionDevice.m_data, 0, positionHost.size());
+		//UE_LOG(LogTemp, Warning, TEXT("fluidWorld != null, positionDevice.size() = %d"), positionDevice.size()); // 75276
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("fluidWorld == null"));
 	}
 	static int curFrame = 0;
-	UE_LOG(LogTemp, Warning, TEXT("Current Frame = %d"), curFrame++);
+	//UE_LOG(LogTemp, Warning, TEXT("Current Frame = %d"), curFrame++);
 }
 
 void UFluidTestSubsystem::Deinitialize()

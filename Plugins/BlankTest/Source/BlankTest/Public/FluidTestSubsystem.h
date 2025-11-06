@@ -5,6 +5,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Tickable.h" // 必须包含这个头文件
 #include "object/gas_world.h"
+#include "ParticleManager.h"
 #include "FluidTestSubsystem.generated.h"
 
 
@@ -36,4 +37,8 @@ public:
 
 	VecArray<vec3r, CPU> positionHost;
 
+	/*
+	UPROPERTY()
+	AParticleManager* ParticleManager = nullptr;
+	*/
 };
