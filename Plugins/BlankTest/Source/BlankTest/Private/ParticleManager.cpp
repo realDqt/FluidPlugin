@@ -60,6 +60,15 @@ AParticleManager::AParticleManager()
     if (SphereMesh.Succeeded())
     {
         InstancedMeshComponent->SetStaticMesh(SphereMesh.Object);
+        // 检查 BaseMaterial 是否已在蓝图中设置
+        if (BaseMaterial)
+        {
+            InstancedMeshComponent->SetMaterial(0, BaseMaterial);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("AParticleManager: 'BaseMaterial' is not set in the Blueprint! Cannot create dynamic material."));
+        }
     }
     else
     {
@@ -77,16 +86,6 @@ void AParticleManager::BeginPlay()
     int numOfParticles = fluidWorld->getFluid(0)->getCurNumParticles();
     PositionHost = VecArray<vec3r, CPU>(numOfParticles);
     ParticlePositions.SetNumUninitialized(numOfParticles);
-
-    // 检查 BaseMaterial 是否已在蓝图中设置
-    if (BaseMaterial)
-    {
-        InstancedMeshComponent->SetMaterial(0, BaseMaterial);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("AParticleManager: 'BaseMaterial' is not set in the Blueprint! Cannot create dynamic material."));
-    }
 }
 
 void AParticleManager::Tick(float DeltaTime)
@@ -152,7 +151,7 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
     float scale = 0.01;
     const FVector Scale = FVector(scale, scale, scale);
 
-    // 4. 【新】使用 ParallelFor 并行填充缓冲区
+    // 4. 使用 ParallelFor 并行填充缓冲区
     // ParallelFor 会自动将 NewCount 个任务分配到多个CPU核心
     ParallelFor(NewCount, [&](int32 i)
     {
@@ -171,11 +170,6 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
     UpdateParticleTransforms(TransformBuffer);
 }
 
-
-/**
- * 高级实现：更新完整的 Transform
- * (这个函数与上一个版本完全相同)
- */
 void AParticleManager::UpdateParticleTransforms(const TArray<FTransform>& NewTransforms)
 {
     if (!InstancedMeshComponent)
