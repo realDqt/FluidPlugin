@@ -43,7 +43,6 @@ void UFluidTestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	UE_LOG(LogTemp, Warning, TEXT("FluidTestSubsystem::Initialize — 游戏实例启动！"));
 
 	TestFluidPerformanceDemo(0, nullptr);
-	
 }
 
 bool UFluidTestSubsystem::IsTickable() const
@@ -55,7 +54,16 @@ void UFluidTestSubsystem::Tick(float DeltaTime)
 {
 	if (fluidWorld)
 	{
-		fluidWorld->update(0); //这行导致crash
+		fluidWorld->update(0); 
+		// TODO: UE渲染
+		auto fluid = fluidWorld->getFluid(0);
+		check(fluid)
+		auto& positionDevice = fluid->pf.getPositionRef();
+		if (positionHost.size() != positionDevice.size())
+		{
+			positionHost = VecArray<vec3r, CPU>(positionDevice.size());
+		}
+		copyArray<vec3r, MemType::CPU, MemType::GPU>(&positionHost.m_data, &positionDevice.m_data, 0, positionDevice.size());
 		UE_LOG(LogTemp, Warning, TEXT("fluidWorld != null"));
 	}
 	else {

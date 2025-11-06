@@ -34,4 +34,6 @@ public:
 	virtual bool IsTickable() const override;
 	//~ End FTickableGameObject Interface
 
+	VecArray<vec3r, CPU> positionHost;
+
 };
