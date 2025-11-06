@@ -60,24 +60,6 @@ AParticleManager::AParticleManager()
     if (SphereMesh.Succeeded())
     {
         InstancedMeshComponent->SetStaticMesh(SphereMesh.Object);
-        
-        // --- ⬇️ 这是新增的代码 ⬇️ ---
-
-        // 在设置网格体成功后，尝试加载并设置一个默认材质
-        // 我们使用引擎自带的 BasicShapeMaterial 作为示例
-        static ConstructorHelpers::FObjectFinder<UMaterial> DefaultMaterial(TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
-        
-        if (DefaultMaterial.Succeeded())
-        {
-            // SetMaterial 的第一个参数是材质索引 (Index 0)
-            InstancedMeshComponent->SetMaterial(0, DefaultMaterial.Object);
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("AParticleManager: Could not find default BasicShapeMaterial. Material will be empty."));
-        }
-
-        // --- ⬆️ 新增代码结束 ⬆️ ---
     }
     else
     {
@@ -95,6 +77,16 @@ void AParticleManager::BeginPlay()
     int numOfParticles = fluidWorld->getFluid(0)->getCurNumParticles();
     PositionHost = VecArray<vec3r, CPU>(numOfParticles);
     ParticlePositions.SetNumUninitialized(numOfParticles);
+
+    // 检查 BaseMaterial 是否已在蓝图中设置
+    if (BaseMaterial)
+    {
+        InstancedMeshComponent->SetMaterial(0, BaseMaterial);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("AParticleManager: 'BaseMaterial' is not set in the Blueprint! Cannot create dynamic material."));
+    }
 }
 
 void AParticleManager::Tick(float DeltaTime)
@@ -108,13 +100,10 @@ void AParticleManager::Tick(float DeltaTime)
         auto fluid = fluidWorld->getFluid(0);
         check(fluid)
         auto& positionDevice = fluid->pf.getPositionRef();
-        copyArray<vec3r, MemType::CPU, MemType::GPU>(&PositionHost.m_data, &positionDevice.m_data, 0, PositionHost.size());
+        physeng::checkCudaError(cudaMemcpy(ParticlePositions.GetData(), positionDevice.m_data, PositionHost.size()*sizeof(vec3r), cudaMemcpyDeviceToHost));
+        //copyArray<vec3r, MemType::CPU, MemType::GPU>(&PositionHost.m_data, &positionDevice.m_data, 0, PositionHost.size());
 
         check(PositionHost.size() == ParticlePositions.Num());
-        for (int i = 0; i < ParticlePositions.Num(); ++i)
-        {
-            ParticlePositions[i] = FVector(PositionHost[i].x, PositionHost[i].y, PositionHost[i].z);
-        }
         UpdateParticlePositions(ParticlePositions);
         //UE_LOG(LogTemp, Warning, TEXT("fluidWorld != null, ParticlePositions[100].X = %f"), ParticlePositions[100].X); // 75276
     }
@@ -134,36 +123,50 @@ void AParticleManager::ClearParticles()
     CurrentInstanceCount = 0;
 }
 
-/**
- * 核心实现：只更新位置
- */
+
 void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositions)
 {
     if (!InstancedMeshComponent)
     {
-        //UE_LOG(LogTemp, Error, TEXT("InstancedMeshComponent IS NULL"));
         return;
     }
-   // UE_LOG(LogTemp, Warning, TEXT("AParticleManager::UpdateParticlePositions is called"));
 
     const int32 NewCount = NewPositions.Num();
 
-    // 1. 准备 FTransform 数组
-    // 我们重用 TransformBuffer，避免每帧分配新内存
-    TransformBuffer.SetNumUninitialized(NewCount); // 设置数组大小，但不初始化元素
-
-    // **从成员变量中获取固定的旋转和缩放**
-    const FQuat RotationAsQuat = FQuat::Identity;
-    float scale = 0.1;
-    const FVector Scale = FVector(scale, scale, scale);
-
-    // 2. 填充缓冲区 (只修改位置)
-    for (int32 i = 0; i < NewCount; ++i)
+    // 1. 处理 NewCount 为 0 的情况
+    if (NewCount == 0)
     {
-        TransformBuffer[i].SetComponents(RotationAsQuat, NewPositions[i], Scale);
+        if (CurrentInstanceCount > 0)
+        {
+            ClearParticles();
+        }
+        return;
     }
 
-    // 3. 调用我们的“高级”更新函数来完成工作
+    // 2. 准备 FTransform 数组 (在主线程上调整大小)
+    //    SetNumUninitialized (或 SetNum) 必须在主线程上调用
+    TransformBuffer.SetNumUninitialized(NewCount);
+
+    // 3. 准备固定的变换值 (这些将被并行任务捕获)
+    const FQuat RotationAsQuat = FQuat::Identity; // 粒子本身的旋转
+    float scale = 0.01;
+    const FVector Scale = FVector(scale, scale, scale);
+
+    // 4. 【新】使用 ParallelFor 并行填充缓冲区
+    // ParallelFor 会自动将 NewCount 个任务分配到多个CPU核心
+    ParallelFor(NewCount, [&](int32 i)
+    {
+        // 【高效旋转】
+        const FVector& InPos = NewPositions[i];
+        const FVector RotatedPos(InPos.X, -InPos.Z, InPos.Y);
+
+        // 【填充缓冲区】
+        // 索引 'i' 在每个并行任务中都是唯一的，所以写入 TransformBuffer[i] 是线程安全的。
+        TransformBuffer[i].SetComponents(RotationAsQuat, RotatedPos, Scale);
+    });
+    // (此时，主线程会等待所有并行任务完成)
+
+    // 5. 调用我们的“高级”更新函数来完成渲染提交
     // (UpdateParticleTransforms 内部包含了处理“生成”和“更新”的逻辑)
     UpdateParticleTransforms(TransformBuffer);
 }
