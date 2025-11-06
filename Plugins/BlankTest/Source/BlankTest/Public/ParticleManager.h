@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "object/gas_world.h"
 #include "ParticleManager.generated.h"
 
 UCLASS()
@@ -28,20 +29,6 @@ protected:
 public: 
 	// Called every frame (默认关闭)
 	virtual void Tick(float DeltaTime) override;
-
-	// --- 可配置的固定属性 ---
-
-	/** * 在编辑器中设置的粒子固定缩放。
-	 * 这将在所有实例之间共享。
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle Manager|Config")
-	FVector ParticleScale;
-
-	/** * 在编辑器中设置的粒子固定旋转。
-	 * 这将在所有实例之间共享。
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle Manager|Config")
-	FRotator ParticleRotation;
 
 
 	// --- 控制函数 ---
@@ -68,6 +55,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Particle Manager")
 	void ClearParticles();
 
+	/**
+	 * 【新】在蓝图中设置的基础材质。
+	 * 你应该将其设置为 M_ParticleBase (或你创建的任何材质)。
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle Manager|Config")
+	UMaterialInterface* BaseMaterial;
+
 private:
 	/** 缓存当前实例的数量，用于检测变化 */
 	int32 CurrentInstanceCount = 0;
@@ -76,4 +70,7 @@ private:
 	 * 避免每帧都重新分配内存。
 	 */
 	TArray<FTransform> TransformBuffer;
+
+	TArray<FVector> ParticlePositions;
+	VecArray<vec3r, CPU> PositionHost;
 };
