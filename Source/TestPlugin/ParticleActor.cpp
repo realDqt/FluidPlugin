@@ -44,13 +44,54 @@ AParticleActor::AParticleActor()
 void AParticleActor::BeginPlay()
 {
     Super::BeginPlay();
-    
+    // 假设我们希望 position 的分量在 0 到 10 之间
+    float MinRange1 = 0.0f;
+    float MaxRange1 = 1.0f;
+
+    FVector position(
+        FMath::FRandRange(MinRange1, MaxRange1), // 随机 X
+        FMath::FRandRange(MinRange1, MaxRange1), // 随机 Y
+        FMath::FRandRange(MinRange1, MaxRange1)  // 随机 Z
+    );
+
+    // 假设我们希望 position2 的分量在 20 到 100 之间
+    float MinRange2 = 10.0f;
+    float MaxRange2 = 11.0f;
+
+    FVector position2(
+        FMath::FRandRange(MinRange2, MaxRange2),
+        FMath::FRandRange(MinRange2, MaxRange2),
+        FMath::FRandRange(MinRange2, MaxRange2)
+    );
+    UpdateParticlePositions({position, position2}, 0.5);
 }
 
 // Called every frame
 void AParticleActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+    // TODO: Tick中更新无效
+    
+    // 假设我们希望 position 的分量在 0 到 10 之间
+    float MinRange1 = 0.0f;
+    float MaxRange1 = 1.0f;
+
+    FVector position(
+        FMath::FRandRange(MinRange1, MaxRange1), // 随机 X
+        FMath::FRandRange(MinRange1, MaxRange1), // 随机 Y
+        FMath::FRandRange(MinRange1, MaxRange1)  // 随机 Z
+    );
+
+    // 假设我们希望 position2 的分量在 20 到 100 之间
+    float MinRange2 = 10.0f;
+    float MaxRange2 = 11.0f;
+
+    FVector position2(
+        FMath::FRandRange(MinRange2, MaxRange2),
+        FMath::FRandRange(MinRange2, MaxRange2),
+        FMath::FRandRange(MinRange2, MaxRange2)
+    );
+    UpdateParticlePositions({position, position2}, 0.5);
 }
 
 void AParticleActor::UpdateParticlePositions(const TArray<FVector>& NewPositions, float ParticleScale, bool bForceReinitialize)
