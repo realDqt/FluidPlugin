@@ -10,16 +10,16 @@
 
 using namespace physeng;
 
-uint numParticles = 0;
-StopWatchInterface *timer = NULL;
-static FluidWorld* fluidWorld = nullptr;
+uint numParticles2 = 0;
+StopWatchInterface *timer2 = NULL;
+static FluidWorld* fluidWorld2 = nullptr;
 
-void TestFluidPerformanceDemo(int argc, char** argv)
+void TestFluidPerformanceDemo1(int argc, char** argv)
 {
 	cudaInit(argc, argv);
 
-	fluidWorld = new FluidWorld(make_vec3r(-15, 0, -15), make_vec3r(15, 25, 15));
-	int fluidIndex = fluidWorld->initFluidSystem(make_vec3r(-4, 9, -4), make_vec3r(7, 10, 8) * 1.8, 0.0f, 0.05f);
+	fluidWorld2 = new FluidWorld(make_vec3r(-15, 0, -15), make_vec3r(15, 25, 15));
+	int fluidIndex = fluidWorld2->initFluidSystem(make_vec3r(-4, 9, -4), make_vec3r(7, 10, 8) * 1.8, 0.0f, 0.05f);
 
 
 	printf("Fluid Symbol:%d\n", fluidIndex);
@@ -27,9 +27,9 @@ void TestFluidPerformanceDemo(int argc, char** argv)
 	if (fluidIndex < 0) {
 		exit(0);
 	}
-	printf("水体粒子数：%d\n", fluidWorld->getFluid(fluidIndex)->getCurNumParticles());
+	printf("水体粒子数：%d\n", fluidWorld2->getFluid(fluidIndex)->getCurNumParticles());
 
-	fluidWorld->completeInit(fluidIndex);
+	fluidWorld2->completeInit(fluidIndex);
     
 }
 
@@ -55,12 +55,12 @@ void ANiagaraBasedOnCPU::BeginPlay()
     Super::BeginPlay();
     
     // 1. 初始化流体世界
-    TestFluidPerformanceDemo(0, nullptr);
+    TestFluidPerformanceDemo1(0, nullptr);
     
     // 2. 预分配 CPU 数组空间
-    if (fluidWorld)
+    if (fluidWorld2)
     {
-        int numOfParticles = fluidWorld->getFluid(0)->getCurNumParticles();
+        int numOfParticles = fluidWorld2->getFluid(0)->getCurNumParticles();
         
         // 确保 UE 数组和 SDK 辅助数组大小匹配
         PositionHost = VecArray<vec3r, CPU>(numOfParticles);
@@ -74,13 +74,13 @@ void ANiagaraBasedOnCPU::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    if (fluidWorld)
+    if (fluidWorld2)
     {
         // 1. 运行 PBD 模拟 (GPU)
-        fluidWorld->update(0); 
+        fluidWorld2->update(0); 
         
         // 2. 获取 GPU 数据引用
-        auto fluid = fluidWorld->getFluid(0);
+        auto fluid = fluidWorld2->getFluid(0);
         check(fluid);
         auto& positionDevice = fluid->pf.getPositionRef();
         
