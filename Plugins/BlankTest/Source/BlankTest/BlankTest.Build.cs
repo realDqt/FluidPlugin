@@ -42,6 +42,11 @@ public class BlankTest : ModuleRules
 				"Slate",
 				"SlateCore",
 				// ... add private dependencies that you statically link with here ...	
+				
+				// Add Niagara dependency
+				"Niagara",
+				"NiagaraCore",
+				"VectorVM",
 			}
 			);
 		
