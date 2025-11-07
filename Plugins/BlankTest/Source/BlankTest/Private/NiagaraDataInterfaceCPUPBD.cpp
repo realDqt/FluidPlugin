@@ -1,13 +1,11 @@
 ﻿#include "NiagaraDataInterfaceCPUPBD.h"
 
-#include <Context.h>
-
 #include "NiagaraSystemInstance.h"
-
 #include "NiagaraBasedOnCPU.h" 
 #include "NiagaraTypes.h"
 #include "VectorVM.h"
 #include "NiagaraCustomVersion.h"
+#include "NiagaraConstants.h"
 
 
 
@@ -76,7 +74,18 @@ void UNiagaraDataInterfaceCPUPBD::GetVMExternalFunction(const FVMExternalFunctio
     if (BindingInfo.Name == TEXT("GetParticlePosition") && BindingInfo.GetNumInputs() == 1 && BindingInfo.GetNumOutputs() == 1)
     {
         // 使用 FVMExternalFunction::CreateUObject 进行绑定
-        OutFunc = FVMExternalFunction::CreateUObject(this, &UNiagaraDataInterfaceCPUPBD::VMGetParticlePosition);
+        //OutFunc = FVMExternalFunction::CreateUObject(this, &UNiagaraDataInterfaceCPUPBD::VMGetParticlePosition);
+        // 1. 将 void* 转换为我们自己的数据类型
+        FNiagaraPBD_CPUParticleData* MyInstanceData = (FNiagaraPBD_CPUParticleData*)InstanceData;
+
+        // 2. 【核心】使用 CreateLambda 捕获 MyInstanceData 指针
+        OutFunc = FVMExternalFunction::CreateLambda(
+            [MyInstanceData](FVectorVMContext& Context)
+            {
+                // 3. 调用我们的静态函数，并将 Context 和捕获的 InstanceData 传递进去
+                UNiagaraDataInterfaceCPUPBD::VMGetParticlePosition_Internal(Context, MyInstanceData);
+            }
+        );
     }
 }
 
@@ -85,44 +94,43 @@ void UNiagaraDataInterfaceCPUPBD::GetVMExternalFunction(const FVMExternalFunctio
 // NDI 核心函数：在 CPU VM 中执行
 // ----------------------------------------------------
 
-void UNiagaraDataInterfaceCPUPBD::VMGetParticlePosition(FVectorVMContext& Context)
+void UNiagaraDataInterfaceCPUPBD::VMGetParticlePosition_Internal(FVectorVMContext& Context,FNiagaraPBD_CPUParticleData* InstanceData)
 {
     // 1. 获取输入/输出指针
-    VectorVM::FUserPtrHandler<int32> ParticleIndex(Context); 
-    VectorVM::FExternalFuncRegisterHandler<FVector> OutPosition(Context); 
-
-    // 2. 获取 ParticleManager 实例和数据
-    FNiagaraPBD_CPUParticleData* InstanceData = (FNiagaraPBD_CPUParticleData*)Context.GetInstanceData();
-
-    // 3. 检查缓存的数据是否有效
+    VectorVM::FExternalFuncInputHandler<int32> ParticleIndexHandler(Context);
+    VectorVM::FExternalFuncRegisterHandler<FVector> OutPositionHandler(Context);
+    
+    // 2. 检查缓存的数据是否有效 (现在检查的是 PositionsPtr)
     if (!InstanceData || !InstanceData->PositionsPtr)
     {
-        // 如果数据无效（例如 Actor 未设置），则快速跳过
+        // 如果数据无效，快速将所有输出设置为零并返回
         for (int32 i = 0; i < Context.GetNumInstances(); ++i)
         {
-            *OutPosition.GetAndAdvance() = FVector::ZeroVector; 
+            ParticleIndexHandler.GetAndAdvance(); // 必须消耗输入
+            *(OutPositionHandler.GetDestAndAdvance()) = FVector::ZeroVector; 
         }
         return;
     }
 
-    // 4. 从缓存的指针获取数据
-    TArray<FVector>* Positions = InstanceData->PositionsPtr;
+    // 3. 从缓存的指针获取数据 (非常快)
+    const TArray<FVector>& Positions = *(InstanceData->PositionsPtr); 
     const int32 NumParticles = InstanceData->NumParticles; // 使用缓存的数量
 
     // 5. 循环遍历当前批次的所有粒子
     for (int32 i = 0; i < Context.GetNumInstances(); ++i)
     {
-        const int32 Index = ParticleIndex.GetAndAdvance(); 
+        // 读取输入
+        const int32 Index = ParticleIndexHandler.GetAndAdvance(); 
 
         if (Index >= 0 && Index < NumParticles)
         {
-            // 【修复】现在所有指针都已正确解析，赋值操作将成功
-            *OutPosition.GetAndAdvance() = (*Positions)[Index]; 
+            // 写入输出
+            *(OutPositionHandler.GetDestAndAdvance()) = Positions[Index]; 
         }
         else
         {
             // 索引越界
-            *OutPosition.GetAndAdvance() = FVector::ZeroVector; 
+            *(OutPositionHandler.GetDestAndAdvance()) = FVector::ZeroVector; 
         }
     }
 }

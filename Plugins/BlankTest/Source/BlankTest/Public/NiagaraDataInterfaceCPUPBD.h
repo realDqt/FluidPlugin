@@ -60,8 +60,11 @@ public:
 	/**
 	 * @brief 核心函数。在 Niagara VM (CPU) 中执行，用于获取给定索引的粒子位置。
 	 * @param Context - Niagara VM 的执行上下文。
+	 * @param InstanceData - 由 Lambda 传入的、已初始化的 FNiagaraPBD_CPUParticleData 指针.
 	 */
-	void VMGetParticlePosition(FVectorVMContext& Context);
+	
+	//void VMGetParticlePosition(FVectorVMContext& Context);
+	static void VMGetParticlePosition_Internal(FVectorVMContext& Context, FNiagaraPBD_CPUParticleData* InstanceData);
 	
 private:
 	// 缓存 NiagaraBasedOnCPU 的指针
