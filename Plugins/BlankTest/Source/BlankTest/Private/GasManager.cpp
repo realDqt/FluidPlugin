@@ -88,11 +88,38 @@ void AGasManager::BeginPlay()
 
 	// 3. Create the dynamic UVolumeTexture
 	// PF_R8G8B8A8 对应 SDK 的 unsigned char RGBA 缓冲区
-	SmokeVolumeTexture = UVolumeTexture::CreateTransient(SDKGridSize.x, SDKGridSize.y, SDKGridSize.z, PF_R8G8B8A8);
-	if (SmokeVolumeTexture)
-	{
-		SmokeVolumeTexture->UpdateResource();
-	}
+	// 3a. 创建 UObject 实例
+	SmokeVolumeTexture = NewObject<UVolumeTexture>(
+			this,       // Outer
+			NAME_None,  // Name
+			RF_Transient // Flags (瞬态的，不会被保存)
+		);
+
+	// 3b. 创建并配置 PlatformData
+	SmokeVolumeTexture->PlatformData = new FTexturePlatformData();
+	SmokeVolumeTexture->PlatformData->SizeX = SDKGridSize.x;
+	SmokeVolumeTexture->PlatformData->SizeY = SDKGridSize.y;
+	SmokeVolumeTexture->PlatformData->SetNumSlices(SDKGridSize.z); // 设置深度
+	SmokeVolumeTexture->PlatformData->PixelFormat = PF_R8G8B8A8;    // 设置像素格式
+
+	// 3c. 创建唯一的 MipMap 级别
+	FTexture2DMipMap* Mip = new FTexture2DMipMap();
+	SmokeVolumeTexture->PlatformData->Mips.Add(Mip);
+	Mip->SizeX = SDKGridSize.x;
+	Mip->SizeY = SDKGridSize.y;
+        
+	// 3d. 为 MipMap 分配内存
+	const int32 TextureDataSize = SDKGridSize.x * SDKGridSize.y * SDKGridSize.z * 4; // 4 bytes (RGBA)
+	Mip->BulkData.Lock(LOCK_READ_WRITE);
+	void* DestData = Mip->BulkData.Realloc(TextureDataSize);
+        
+	// (可选，但推荐) 将新分配的内存清零，避免初始闪烁
+	FMemory::Memzero(DestData, TextureDataSize); 
+        
+	Mip->BulkData.Unlock();
+
+	// 3e. 初始化纹理资源
+	SmokeVolumeTexture->UpdateResource();
 
 	// 4. 创建和配置动态材质实例 (MID)
 	if (BaseVolumeMaterial)
@@ -146,8 +173,15 @@ void AGasManager::Tick(float DeltaTime)
     	auto& textureData = gas->getTexture();
     	
     	// 4. 锁定 UE 纹理资源以进行写入
-    	FTexturePlatformData* PlatformData = SmokeVolumeTexture->GetPlatformData();
+    	FTexturePlatformData* PlatformData = SmokeVolumeTexture->PlatformData;
     	check(PlatformData);
+
+    	if (PlatformData->Mips.Num() == 0)
+    	{
+    		UE_LOG(LogTemp, Error, TEXT("SmokeVolumeTexture Mips.Num() is 0."));
+    		return;
+    	}
+    	
     	FTexture2DMipMap& Mip = PlatformData->Mips[0];
     	void* DestTextureData = Mip.BulkData.Lock(LOCK_READ_WRITE);
 

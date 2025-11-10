@@ -5,16 +5,17 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "object/gas_world.h"
-#include "GasManager.generated.h"
 #include "UObject/ConstructorHelpers.h"
 
+#include "Engine/VolumeTexture.h"
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
-#include "Engine/VolumeTexture.h"
 #include "RHICommandList.h"
 #include "RHI.h"
 #include "RenderCore.h"
 #include "TextureResource.h"
+
+#include "GasManager.generated.h"
 
 UCLASS()
 class BLANKTEST_API AGasManager : public AActor
