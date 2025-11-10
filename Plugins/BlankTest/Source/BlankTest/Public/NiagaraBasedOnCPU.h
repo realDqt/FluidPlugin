@@ -24,6 +24,8 @@ public:
 	// Called every frame (默认关闭)
 	virtual void Tick(float DeltaTime) override;
 
+	// 【新增】用于保护 ParticlePositions 访问的互斥锁
+	FCriticalSection DataLock;
 
 	// 【新增】供 NDI 读取的 CPU 粒子位置数组 (必须是 Public/BlueprintReadOnly)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Particle Manager|Data")

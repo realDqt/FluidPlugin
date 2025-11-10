@@ -40,6 +40,7 @@ public:
 	// ----------------------------------------------------
 	// UNiagaraDataInterface 覆盖函数 (CPU/Game Thread)
 	// ----------------------------------------------------
+	virtual void PostInitProperties() override;
 
 	virtual int32 PerInstanceDataSize() const override;
 

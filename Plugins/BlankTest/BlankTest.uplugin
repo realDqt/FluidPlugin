@@ -18,7 +18,7 @@
 		{
 			"Name": "BlankTest",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+            "LoadingPhase": "Default"
 		}
 	]
 }

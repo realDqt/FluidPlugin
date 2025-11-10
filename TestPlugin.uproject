@@ -17,6 +17,10 @@
 		{
 			"Name": "BlankTest",
 			"Enabled": true
+		},
+		{
+			"Name": "NiagaraExtras",
+			"Enabled": true
 		}
 	]
 }

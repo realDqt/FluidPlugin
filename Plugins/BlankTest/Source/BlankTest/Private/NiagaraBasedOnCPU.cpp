@@ -86,9 +86,10 @@ void ANiagaraBasedOnCPU::Tick(float DeltaTime)
         
         // 3. 【核心】GPU -> CPU 同步数据回读
         // 使用 CUDA API 将数据从 Device 复制到 Host
+        {
+        FScopeLock Lock(&DataLock);
         physeng::checkCudaError(cudaMemcpy(ParticlePositions.GetData(), positionDevice.m_data, PositionHost.size()*sizeof(vec3r), cudaMemcpyDeviceToHost));
-        
-        
+        }
         // TODO: 此时，Niagara NDI (UNiagaraDataInterfaceCPUPBD) 可以在其 VMGetParticlePosition
         // 函数中安全地读取最新的 ParticlePositions 数据。
     }

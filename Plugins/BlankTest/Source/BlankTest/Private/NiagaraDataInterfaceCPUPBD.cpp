@@ -13,6 +13,17 @@
 // NDI C++ 实现 (CPU/Game Thread)
 // ----------------------------------------------------
 
+void UNiagaraDataInterfaceCPUPBD::PostInitProperties()
+{
+    Super::PostInitProperties();
+
+    if (HasAnyFlags(RF_ClassDefaultObject))
+    {
+        ENiagaraTypeRegistryFlags Flags = ENiagaraTypeRegistryFlags::AllowAnyVariable | ENiagaraTypeRegistryFlags::AllowParameter;
+        FNiagaraTypeRegistry::Register(FNiagaraTypeDefinition(GetClass()), Flags);
+    }
+}
+
 // 辅助函数：安全获取 ANiagaraBasedOnCPU 指针
 ANiagaraBasedOnCPU* UNiagaraDataInterfaceCPUPBD::GetNiagaraParticleManager(FNiagaraSystemInstance* SystemInstance) const
 {

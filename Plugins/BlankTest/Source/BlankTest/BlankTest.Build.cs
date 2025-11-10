@@ -30,6 +30,8 @@ public class BlankTest : ModuleRules
 				"Core",
 				// ... add other public dependencies that you statically link with here ...
 				"PhysEngineSDK",
+				"RHI",
+				"RenderCore"
 			}
 			);
 			
@@ -41,12 +43,9 @@ public class BlankTest : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				// ... add private dependencies that you statically link with here ...	
-				
-				// Add Niagara dependency
 				"Niagara",
 				"NiagaraCore",
-				"VectorVM",
+				"VectorVM"
 			}
 			);
 		
@@ -57,5 +56,10 @@ public class BlankTest : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
+		
+		if (Target.Type == TargetType.Editor)
+		{
+			PrivateDependencyModuleNames.Add("NiagaraEditor");
+		}
 	}
 }
