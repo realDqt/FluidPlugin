@@ -1,4 +1,4 @@
-    // Fill out your copyright notice in the Description page of Project Settings.
+    /*// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ParticleManager.h"
 #include "UObject/ConstructorHelpers.h"
@@ -195,16 +195,16 @@ void AParticleManager::UpdateParticleTransforms(const TArray<FTransform>& NewTra
         // **数量变化：这是“生成”步骤 (或重新生成)**
         // 清除旧的，然后批量添加新的
         InstancedMeshComponent->ClearInstances();
-        InstancedMeshComponent->AddInstances(NewTransforms, false /* bShouldReturnIndices */);
+        InstancedMeshComponent->AddInstances(NewTransforms, false /* bShouldReturnIndices #1#);
     }
     else
     {
         // **数量未变：这是“更新”步骤**
         // 批量更新所有 Transform，这非常快
         //UE_LOG(LogTemp, Warning, TEXT("NewTransforms.Num = %d"), NewTransforms.Num());
-        InstancedMeshComponent->BatchUpdateInstancesTransforms(0, NewTransforms, true /* bWorldSpace */, true /* bMarkRenderStateDirty */);
+        InstancedMeshComponent->BatchUpdateInstancesTransforms(0, NewTransforms, true /* bWorldSpace #1#, true /* bMarkRenderStateDirty #1#);
     }
 
     // 缓存新的数量
     CurrentInstanceCount = NewCount;
-}
+}*/

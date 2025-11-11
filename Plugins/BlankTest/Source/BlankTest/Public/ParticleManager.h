@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/*// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -22,7 +22,7 @@ protected:
 	/**
 	 * 【核心】实例化静态网格体组件。
 	 * 这一个组件将负责渲染所有的粒子（小球）。
-	 */
+	 #1#
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UInstancedStaticMeshComponent* InstancedMeshComponent;
 
@@ -38,39 +38,39 @@ public:
 	 * 它将自动使用在蓝图中设置的 ParticleScale 和 ParticleRotation。
 	 *
 	 * @param NewPositions - 所有粒子的新世界坐标数组。
-	 */
+	 #1#
 	UFUNCTION(BlueprintCallable, Category = "Particle Manager")
 	void UpdateParticlePositions(const TArray<FVector>& NewPositions);
 
 	/**
 	 * （高级功能）如果你需要完全控制，此函数仍然可用。
 	 * @param NewTransforms - 所有粒子的新 Transform 数组。
-	 */
+	 #1#
 	UFUNCTION(BlueprintCallable, Category = "Particle Manager")
 	void UpdateParticleTransforms(const TArray<FTransform>& NewTransforms);
 
 	/**
 	 * 清除所有粒子实例。
-	 */
+	 #1#
 	UFUNCTION(BlueprintCallable, Category = "Particle Manager")
 	void ClearParticles();
 
 	/**
 	 * 【新】在蓝图中设置的基础材质。
 	 * 你应该将其设置为 M_ParticleBase (或你创建的任何材质)。
-	 */
+	 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle Manager|Config")
 	UMaterialInterface* BaseMaterial;
 
 private:
-	/** 缓存当前实例的数量，用于检测变化 */
+	/** 缓存当前实例的数量，用于检测变化 #1#
 	int32 CurrentInstanceCount = 0;
 
 	/** * 一个可重用的缓冲区，用于在 UpdateParticlePositions 中构建 FTransform 数组，
 	 * 避免每帧都重新分配内存。
-	 */
+	 #1#
 	TArray<FTransform> TransformBuffer;
 
 	TArray<FVector> ParticlePositions;
 	VecArray<vec3r, CPU> PositionHost;
-};
+};*/

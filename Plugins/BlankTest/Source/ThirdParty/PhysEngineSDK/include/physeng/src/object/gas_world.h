@@ -1,3 +1,5 @@
+#pragma once
+
 #include "gas_system.h"
 #include "nuclear_system.h"
 #include "config.h"
