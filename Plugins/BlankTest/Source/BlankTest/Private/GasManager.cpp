@@ -13,17 +13,18 @@
 using namespace physeng;
 
 uint numParticles = 0;
+//uint3 gridSize;
 StopWatchInterface *timer = NULL;
 static GasWorld* gasWorld = nullptr;
 void TestGasPerformanceDemo(int argc, char** argv)
 {
 	printf("Running TestGasPerformanceDemo\n");
 	cudaInit(argc, argv);
-
+    printf("Finish cudaInit\n");
+	
 	gasWorld = new GasWorld();
 	int gasIndex = gasWorld->initGasSystem(make_vec3r(0.0f), 0.000002f, 0.000000f, 4.0f, 5.0f, 0.001f);
-
-
+	
 	printf("Gas Symbol:%d\n", gasIndex);
 	
 	if (gasIndex < 0) {
