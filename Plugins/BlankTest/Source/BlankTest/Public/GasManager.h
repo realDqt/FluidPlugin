@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/Engine.h"
 #include "object/gas_world.h"
 
 #include "GameFramework/Actor.h"
@@ -9,6 +10,8 @@
 #include "Materials/MaterialInstanceDynamic.h"
 //#include "Engine/VolumeTexture.h"
 #include "GasManager.generated.h"
+
+class UVolumnTexture;
 
 UCLASS()
 class BLANKTEST_API AGasManager : public AActor
