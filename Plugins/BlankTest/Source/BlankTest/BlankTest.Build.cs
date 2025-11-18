@@ -30,6 +30,10 @@ public class BlankTest : ModuleRules
 				"Core",
 				// ... add other public dependencies that you statically link with here ...
 				"PhysEngineSDK",
+				"InputCore", 
+				"RHI", 
+				"RenderCore",
+				"D3D11RHI"
 			}
 			);
 			

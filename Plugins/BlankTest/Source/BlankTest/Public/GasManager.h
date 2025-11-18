@@ -11,7 +11,7 @@
 //#include "Engine/VolumeTexture.h"
 #include "GasManager.generated.h"
 
-class UVolumnTexture;
+class UVolumeTexture;
 
 UCLASS()
 class BLANKTEST_API AGasManager : public AActor
@@ -51,5 +51,4 @@ private:
 	 * Internal cache for the grid size, so we don't have to fetch it constantly.
 	 */
 	uint3 SDKGridSize;
-	
 };
