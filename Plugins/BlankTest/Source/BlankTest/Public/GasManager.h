@@ -21,9 +21,32 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Configuration")
 	TSubclassOf<AUEGasSyetem> GasSystemClass; 
     
-	// [API] 动态生成一个新的烟雾系统
+	// [API] 动态创建并生成一个新的烟雾系统
 	UFUNCTION(BlueprintCallable, Category = "Gas Simulation")
-	AUEGasSyetem* SpawnGasSystem(FVector Location);
+	AUEGasSyetem* CreateAndSpawnGasSystem(FVector Location);
+
+	// [API 1] 仅创建GasSystem，不生成 Actor
+	//UFUNCTION(BlueprintCallable, Category = "Gas Simulation")
+	void CreateGasSystem(GasSystemParams Params);
+
+	// [API 2] 设置GasSystem的发射源
+	//UFUNCTION(BlueprintCallable, Category = "Gas Simulation")
+	void AddGasSystemSource(int GasSystemID, GasSourceParams Params);
+
+	// [API 3] 为已存在的系统生成渲染 Actor
+	// 返回：生成的 Actor
+	UFUNCTION(BlueprintCallable, Category = "Gas Simulation")
+	AUEGasSyetem* SpawnGasSystemActor(int GasSystemID, FVector Location);
+
+	// [API 4] 设置GasSystem的颜色
+	UFUNCTION(BlueprintCallable, Category = "Gas Simulation")
+	void setColorInUE(int GasSystemID, FVector Color)
+	{
+		setGasSystemColor(GasSystemID,make_vec3r(Color.X, Color.Y, Color.Z));
+	}
+	void setGasSystemColor(int GasSystemID, vec3r gasColor);
+
+	//TODO:: 销毁逻辑
 
 protected:
 	virtual void BeginPlay() override;
@@ -32,19 +55,22 @@ protected:
 public: 
 	// Called every frame (默认关闭)
 	virtual void Tick(float DeltaTime) override;
-	
-
-	bool setGasSystemColor(int gasIndex, vec3r gasColor);
 
 private:
 	
 	GasWorld* gasWorld = nullptr;
-	
-	// 存储所有生成的 GasSystem 引用
-	UPROPERTY()
-	TArray<AUEGasSyetem*> ActiveGasSystems;
 
-	//GasParams
+	//维护所有已创建的 GasSystem ID
+	UPROPERTY()
+	TArray<int> ActiveGasSystemIDs;
+	//Key: ID, Value: Actor
+	UPROPERTY()
+	TMap<int,AUEGasSyetem*> UEGasSystemsMap;
+
+	//GasWorldParams
 	GasWorldParams gasWorldParams;
-	std::vector<vec3r> gasColors;
+
+	//GasSystemParams
+	TArray<GasSystemParams> gasSystemParams;
+
 };

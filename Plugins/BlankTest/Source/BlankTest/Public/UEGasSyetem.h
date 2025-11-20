@@ -55,5 +55,4 @@ private:
 	uint3 SDKGridSize;
 
 	//Params
-	GasSystemParams gasSystemParams;
 };
