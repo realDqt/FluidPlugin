@@ -3,15 +3,12 @@
 #include "CoreMinimal.h"
 #include "Engine/Engine.h"
 #include "object/gas_world.h"
-
+#include "GasUtils.h"
 #include "GameFramework/Actor.h"
-#include "UObject/ConstructorHelpers.h"
-#include "Components/StaticMeshComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
-//#include "Engine/VolumeTexture.h"
+#include "UEGasSyetem.h"
 #include "GasManager.generated.h"
 
-class UVolumeTexture;
+//class UVolumeTexture;;
 
 UCLASS()
 class BLANKTEST_API AGasManager : public AActor
@@ -20,35 +17,34 @@ class BLANKTEST_API AGasManager : public AActor
     
 public: 
 	AGasManager();
+	// [API] 蓝图可调用的生成函数
+	UPROPERTY(EditDefaultsOnly, Category = "Configuration")
+	TSubclassOf<AUEGasSyetem> GasSystemClass; 
+    
+	// [API] 动态生成一个新的烟雾系统
+	UFUNCTION(BlueprintCallable, Category = "Gas Simulation")
+	AUEGasSyetem* SpawnGasSystem(FVector Location);
 
 protected:
 	virtual void BeginPlay() override;
-
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public: 
 	// Called every frame (默认关闭)
 	virtual void Tick(float DeltaTime) override;
 	
-	// 在UE编辑器中指定一个基础的体积材质 (我们将在第4步创建它)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Smoke Simulation")
-	class UMaterialInterface* BaseVolumeMaterial;
 
-	// 用于显示烟雾体积的Cube
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Smoke Simulation")
-	class UStaticMeshComponent* VolumeMeshComponent;
-
-	// UE中的动态3D纹理对象
-	UPROPERTY(Transient)
-	class UVolumeTexture* SmokeVolumeTexture;
-
-	// 动态材质实例 (MDI)，用于我们将纹理传递给着色器
-	UPROPERTY(Transient)
-	class UMaterialInstanceDynamic* DynamicVolumeMaterial;
+	bool setGasSystemColor(int gasIndex, vec3r gasColor);
 
 private:
+	
+	GasWorld* gasWorld = nullptr;
+	
+	// 存储所有生成的 GasSystem 引用
+	UPROPERTY()
+	TArray<AUEGasSyetem*> ActiveGasSystems;
 
-	/**
-	 * Internal cache for the grid size, so we don't have to fetch it constantly.
-	 */
-	uint3 SDKGridSize;
+	//GasParams
+	GasWorldParams gasWorldParams;
+	std::vector<vec3r> gasColors;
 };
