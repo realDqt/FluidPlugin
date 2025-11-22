@@ -53,6 +53,21 @@ AParticleManager::AParticleManager()
     // 设置默认性能选项
     InstancedMeshComponent->SetMobility(EComponentMobility::Movable);
     InstancedMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    /*
+    // 1. 开启自定义深度
+    InstancedMeshComponent->SetRenderCustomDepth(true);
+
+    // 2. 设置 Stencil Value (例如设为 1)，用于在后处理材质里把流体和背景区分开
+    InstancedMeshComponent->SetCustomDepthStencilValue(1);
+
+    // 3. 核心修改：关闭主通道渲染
+    // 在 UE4 中，设为 false 后物体不可见，但只要开启了 RenderCustomDepth，
+    // 它依然会写入深度图，这正是我们要的。
+    InstancedMeshComponent->SetRenderInMainPass(false);
+    */
+
+    // 4. 确保不产生阴影
     InstancedMeshComponent->SetCastShadow(false);
 
     // （可选）加载默认网格体
