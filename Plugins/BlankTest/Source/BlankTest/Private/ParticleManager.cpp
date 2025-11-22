@@ -63,6 +63,14 @@ AParticleManager::AParticleManager()
         // 检查 BaseMaterial 是否已在蓝图中设置
         if (BaseMaterial)
         {
+            /*
+            // 从蓝图中设置的基础材质创建动态实例
+            auto DynamicVolumeMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, this);
+            
+            DynamicVolumeMaterial->SetScalarParameterValue(FName("Opacity"), 0.5f); // 确保不透明度为 1
+            DynamicVolumeMaterial->SetVectorParameterValue(FName("Color"), FLinearColor(0, 0, 0.8)); // 确保颜色为白色
+            */
+            
             InstancedMeshComponent->SetMaterial(0, BaseMaterial);
         }
         else
@@ -148,7 +156,7 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
 
     // 3. 准备固定的变换值 (这些将被并行任务捕获)
     const FQuat RotationAsQuat = FQuat::Identity; // 粒子本身的旋转
-    float scale = 0.01;
+    float scale = 0.005;
     const FVector Scale = FVector(scale, scale, scale);
 
     // 4. 使用 ParallelFor 并行填充缓冲区
