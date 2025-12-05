@@ -62,6 +62,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle Manager|Config")
 	UMaterialInterface* BaseMaterial;
 
+
+	
+	void ProcessCmd(const TArray<FString>& cmdList);
+
+	void CreateFluidSystem();
+
+	void SetFluidSystemPos(const TArray<FString>& cmdList);
+
+	void SetFluidSystemColor(const TArray<FString>& cmdList);
+
 private:
 	/** 缓存当前实例的数量，用于检测变化 */
 	int32 CurrentInstanceCount = 0;
@@ -73,4 +83,12 @@ private:
 
 	TArray<FVector> ParticlePositions;
 	VecArray<vec3r, CPU> PositionHost;
+
+	UMaterialInstanceDynamic* DynamicVolumeMaterial = nullptr;
+	void SetFluidSystemPos(const FVector& Position);
+
+	void SetFluidSystemColor(const FVector& Color);
+
+	FVector CoordsSDK2UE(const FVector& UEPosition);
+	FVector CoordsUE2SDK(const FVector& SDKPosition);
 };

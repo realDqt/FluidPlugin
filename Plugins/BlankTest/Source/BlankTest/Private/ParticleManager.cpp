@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ParticleManager.h"
+
+#include "NavigationSystemTypes.h"
 #include "UObject/ConstructorHelpers.h"
 #include "object/fluid_system.h"
 #include "object/particle_fluid.h"
@@ -17,13 +19,14 @@ uint numParticles = 0;
 StopWatchInterface *timer = NULL;
 
 static FluidWorld* fluidWorld = nullptr;
+static FVector OriSDKPos = FVector(-4, 9, -4);
+static FVector DeltaSDKPos = FVector(0, 0, 0);
 void TestFluidPerformanceDemo(int argc, char** argv)
 {
     cudaInit(argc, argv);
 
     fluidWorld = new FluidWorld(make_vec3r(-15, 0, -15), make_vec3r(15, 25, 15));
-    int fluidIndex = fluidWorld->initFluidSystem(make_vec3r(-4, 9, -4), make_vec3r(7, 10, 8) * 1.8, 0.0f, 0.05f);
-
+    int fluidIndex = fluidWorld->initFluidSystem(make_vec3r(OriSDKPos.X, OriSDKPos.Y, OriSDKPos.Z), make_vec3r(7, 10, 8) * 1.8, 0.0f, 0.05f);
 
     printf("Fluid Symbol:%d\n", fluidIndex);
     
@@ -53,19 +56,7 @@ AParticleManager::AParticleManager()
     // 设置默认性能选项
     InstancedMeshComponent->SetMobility(EComponentMobility::Movable);
     InstancedMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-    /*
-    // 1. 开启自定义深度
-    InstancedMeshComponent->SetRenderCustomDepth(true);
-
-    // 2. 设置 Stencil Value (例如设为 1)，用于在后处理材质里把流体和背景区分开
-    InstancedMeshComponent->SetCustomDepthStencilValue(1);
-
-    // 3. 核心修改：关闭主通道渲染
-    // 在 UE4 中，设为 false 后物体不可见，但只要开启了 RenderCustomDepth，
-    // 它依然会写入深度图，这正是我们要的。
-    InstancedMeshComponent->SetRenderInMainPass(false);
-    */
+    
 
     // 4. 确保不产生阴影
     InstancedMeshComponent->SetCastShadow(false);
@@ -78,14 +69,6 @@ AParticleManager::AParticleManager()
         // 检查 BaseMaterial 是否已在蓝图中设置
         if (BaseMaterial)
         {
-            /*
-            // 从蓝图中设置的基础材质创建动态实例
-            auto DynamicVolumeMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, this);
-            
-            DynamicVolumeMaterial->SetScalarParameterValue(FName("Opacity"), 0.5f); // 确保不透明度为 1
-            DynamicVolumeMaterial->SetVectorParameterValue(FName("Color"), FLinearColor(0, 0, 0.8)); // 确保颜色为白色
-            */
-            
             InstancedMeshComponent->SetMaterial(0, BaseMaterial);
         }
         else
@@ -103,37 +86,58 @@ void AParticleManager::BeginPlay()
 {
     Super::BeginPlay();
     // 准备就绪，等待 UpdateParticlePositions 被调用
-    
+}
 
-    TestFluidPerformanceDemo(0, nullptr);
-    int numOfParticles = fluidWorld->getFluid(0)->getCurNumParticles();
-    PositionHost = VecArray<vec3r, CPU>(numOfParticles);
-    ParticlePositions.SetNumUninitialized(numOfParticles);
+static TArray<FString> ParseStringByPipe(const FString& InputStr)
+{
+    TArray<FString> OutArray;
+    
+    // ParseIntoArray 参数说明：
+    // 1. OutArray: 接收结果的数组引用
+    // 2. TEXT("|"): 分割符
+    // 3. true: CullEmpty (剔除空项)。如果设为 true，像 "a||b" 这种会有中间空字符串的情况会被忽略，直接变成 ["a", "b"]。
+    InputStr.ParseIntoArray(OutArray, TEXT("|"), true);
+    
+    return OutArray;
 }
 
 void AParticleManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    /*
+    // ---------------------------cmd test begin: --------------------------------
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    if (PC && PC->IsInputKeyDown(EKeys::SpaceBar))
+    {
+        ProcessCmd(ParseStringByPipe(TEXT("fluid|create")));
+    }
+
+    if (PC && PC->IsInputKeyDown(EKeys::C))
+    {
+        ProcessCmd(ParseStringByPipe(TEXT("fluid|system|color|1.00|0.00|0.00")));
+    }
+    
+    if (PC && PC->IsInputKeyDown(EKeys::P))
+    {
+        ProcessCmd(ParseStringByPipe(TEXT("fluid|system|position|20.00|20.00|20.00")));
+    }
+    // ---------------------------cmd test end: --------------------------------
+    */
+    
     if (fluidWorld)
     {
         fluidWorld->update(0); 
-        // TODO: UE渲染
         auto fluid = fluidWorld->getFluid(0);
         check(fluid)
         auto& positionDevice = fluid->pf.getPositionRef();
         physeng::checkCudaError(cudaMemcpy(ParticlePositions.GetData(), positionDevice.m_data, PositionHost.size()*sizeof(vec3r), cudaMemcpyDeviceToHost));
-        //copyArray<vec3r, MemType::CPU, MemType::GPU>(&PositionHost.m_data, &positionDevice.m_data, 0, PositionHost.size());
-
         check(PositionHost.size() == ParticlePositions.Num());
         UpdateParticlePositions(ParticlePositions);
-        //UE_LOG(LogTemp, Warning, TEXT("fluidWorld != null, ParticlePositions[100].X = %f"), ParticlePositions[100].X); // 75276
     }
     else {
         UE_LOG(LogTemp, Warning, TEXT("fluidWorld == null"));
     }
-    static int curFrame = 0;
-    //UE_LOG(LogTemp, Warning, TEXT("Current Frame = %d"), curFrame++);
 }
 
 void AParticleManager::ClearParticles()
@@ -179,8 +183,8 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
     ParallelFor(NewCount, [&](int32 i)
     {
         // 【高效旋转】
-        const FVector& InPos = NewPositions[i];
-        const FVector RotatedPos(InPos.X, -InPos.Z, InPos.Y);
+        const FVector& InPos = NewPositions[i] + DeltaSDKPos;
+        const FVector RotatedPos = CoordsSDK2UE(InPos);
 
         // 【填充缓冲区】
         // 索引 'i' 在每个并行任务中都是唯一的，所以写入 TransformBuffer[i] 是线程安全的。
@@ -231,3 +235,97 @@ void AParticleManager::UpdateParticleTransforms(const TArray<FTransform>& NewTra
     // 缓存新的数量
     CurrentInstanceCount = NewCount;
 }
+
+
+
+void AParticleManager::ProcessCmd(const TArray<FString>& cmdList)
+{
+    if (cmdList[1].Contains("create"))
+    {
+        CreateFluidSystem();
+    }else if (cmdList[1].Contains("system"))
+    {
+        if (cmdList[2].Contains("position"))
+        {
+            SetFluidSystemPos(cmdList);
+        }else if (cmdList[2].Contains("color"))
+        {
+            SetFluidSystemColor(cmdList);
+        }
+    }
+}
+
+void AParticleManager::SetFluidSystemColor(const FVector& Color)
+{
+    DynamicVolumeMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, this);
+    if (DynamicVolumeMaterial)
+    {
+        DynamicVolumeMaterial->SetVectorParameterValue(FName("BaseColor"), FLinearColor(Color.X, Color.Y, Color.Z));
+        InstancedMeshComponent->SetMaterial(0, DynamicVolumeMaterial);
+    }
+}
+
+void AParticleManager::SetFluidSystemPos(const FVector& UEPosition)
+{
+    const FVector SDKPos = CoordsUE2SDK(UEPosition);
+    DeltaSDKPos = SDKPos - OriSDKPos;
+}
+
+void AParticleManager::CreateFluidSystem()
+{
+    TestFluidPerformanceDemo(0, nullptr);
+    int numOfParticles = fluidWorld->getFluid(0)->getCurNumParticles();
+    PositionHost = VecArray<vec3r, CPU>(numOfParticles);
+    ParticlePositions.SetNumUninitialized(numOfParticles);
+}
+
+
+static FVector StrArr2FVec(const TArray<FString>& StrArr)
+{
+    // 1. 安全检查：确保数组至少有3个元素，否则访问会导致 crash
+    int32 Num = StrArr.Num();
+    if (Num < 3)
+    {
+        // 如果数据不足，建议输出一条日志（可选），并返回零向量
+        UE_LOG(LogTemp, Error, TEXT("StrArr2FVec: Array length is less than 3!"));
+        return FVector::ZeroVector;
+    }
+
+    // 2. 提取最后三个元素并转换为 float
+    // Num - 3 对应 X
+    // Num - 2 对应 Y
+    // Num - 1 对应 Z
+    float X = FCString::Atof(*StrArr[Num - 3]);
+    float Y = FCString::Atof(*StrArr[Num - 2]);
+    float Z = FCString::Atof(*StrArr[Num - 1]);
+
+    // 3. 构造并返回
+    return FVector(X, Y, Z);
+}
+
+void AParticleManager::SetFluidSystemPos(const TArray<FString>& cmdList)
+{
+    FVector UEPos = StrArr2FVec(cmdList);
+    SetFluidSystemPos(UEPos);
+}
+
+void AParticleManager::SetFluidSystemColor(const TArray<FString>& cmdList)
+{
+    FVector Color = StrArr2FVec(cmdList);
+    SetFluidSystemColor(Color);
+}
+
+FVector AParticleManager::CoordsSDK2UE(const FVector& SDKPosition)
+{
+    FVector UEPosition = FVector(SDKPosition.X, -SDKPosition.Z, SDKPosition.Y);
+    return UEPosition;
+}
+
+FVector AParticleManager::CoordsUE2SDK(const FVector& UEPosition)
+{
+    FVector SDKPosition = FVector(UEPosition.X, UEPosition.Z, -UEPosition.Y);
+    return SDKPosition;
+}
+
+
+
