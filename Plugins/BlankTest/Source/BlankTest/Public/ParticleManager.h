@@ -8,6 +8,13 @@
 #include "object/gas_world.h"
 #include "ParticleManager.generated.h"
 
+enum EFluidDemoType : uint
+{
+	PERFORMANCE = 0,
+	RIGID_FLOAT,
+	SPLASH,
+};
+
 UCLASS()
 class BLANKTEST_API AParticleManager : public AActor
 {
@@ -24,7 +31,10 @@ protected:
 	 * 这一个组件将负责渲染所有的粒子（小球）。
 	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UInstancedStaticMeshComponent* InstancedMeshComponent;
+	UInstancedStaticMeshComponent* InstancedMeshComponentFluid;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UInstancedStaticMeshComponent* InstancedMeshComponentRigidOrSand; // 刚体或者沙子
 
 public: 
 	// Called every frame (默认关闭)
@@ -60,13 +70,14 @@ public:
 	 * 你应该将其设置为 M_ParticleBase (或你创建的任何材质)。
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle Manager|Config")
-	UMaterialInterface* BaseMaterial;
+	UMaterialInterface* BaseMaterialFluid;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle Manager|Config")
+	UMaterialInterface* BaseMaterialRigidOrSand;
 	
 	void ProcessCmd(const TArray<FString>& cmdList);
 
-	void CreateFluidSystem();
+	void CreateFluidSystem(EFluidDemoType DemoType = EFluidDemoType::PERFORMANCE);
 
 	void SetFluidSystemPos(const TArray<FString>& cmdList);
 
@@ -84,11 +95,15 @@ private:
 	TArray<FVector> ParticlePositions;
 	VecArray<vec3r, CPU> PositionHost;
 
-	UMaterialInstanceDynamic* DynamicVolumeMaterial = nullptr;
+	UMaterialInstanceDynamic* DynamicVolumeMaterialFluid = nullptr;
+	UMaterialInstanceDynamic* DynamicVolumeMaterialRigidOrSand = nullptr;
+	
 	void SetFluidSystemPos(const FVector& Position);
 
 	void SetFluidSystemColor(const FVector& Color);
 
 	FVector CoordsSDK2UE(const FVector& UEPosition);
 	FVector CoordsUE2SDK(const FVector& SDKPosition);
+
+	EFluidDemoType CurDemoType = EFluidDemoType::PERFORMANCE;
 };

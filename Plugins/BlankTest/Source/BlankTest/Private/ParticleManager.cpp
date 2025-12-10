@@ -13,15 +13,12 @@
 
 using namespace physeng;
 
-uint numParticles = 0;
-//uint3 gridSize;
-
-StopWatchInterface *timer = NULL;
-
 static FluidWorld* fluidWorld = nullptr;
 static FVector OriSDKPos = FVector(-4, 9, -4);
 static FVector DeltaSDKPos = FVector(0, 0, 0);
-void TestFluidPerformanceDemo(int argc, char** argv)
+static int frame = 0;
+
+static void InitFluidPerformanceDemo(int argc, char** argv)
 {
     cudaInit(argc, argv);
 
@@ -39,6 +36,67 @@ void TestFluidPerformanceDemo(int argc, char** argv)
     
 }
 
+static void UpdateFluidPerformanceDemo()
+{
+    fluidWorld->update(0);
+    frame++;
+}
+
+static void InitRigidFloatDemo(int argc, char** argv)
+{
+    cudaInit(argc, argv);
+    vec3r worldMin = make_vec3r(-15, 0, -15), worldMax = make_vec3r(15, 25, 15);
+    fluidWorld = new FluidWorld(worldMin, worldMax);
+    int fluidIndex = fluidWorld->initFluidSystem(make_vec3r(-4, 9, 0), make_vec3r(20, 18, 20), 0.0f, 0.05f, true);
+
+    fluidWorld->addCube(make_vec3r(10, 10, -5), make_vec3r(4.0));
+    fluidWorld->addCube(make_vec3r(10, 10, 5), make_vec3r(4.0));
+    if (fluidIndex < 0) {
+        exit(0);
+    }
+
+    fluidWorld->completeInit(fluidIndex);
+}
+
+static void UpdateRigidFloatDemo()
+{
+    vec3r worldMin = make_vec3r(-15, 0, -15), worldMax = make_vec3r(15, 25, 15);
+    fluidWorld->setWorldBoundary(worldMin - make_vec3r(6 * sinr(frame * fluidWorld->getDt()), 0, 0), worldMax);
+    fluidWorld->update(0);
+    frame++;
+}
+
+static void InitKD(EFluidDemoType FluidDemoType)
+{
+    switch (FluidDemoType)
+    {
+        case EFluidDemoType::PERFORMANCE:
+            InitFluidPerformanceDemo(0, nullptr);
+            break;
+        case EFluidDemoType::RIGID_FLOAT:
+            InitRigidFloatDemo(0, nullptr);
+            break;
+        default:
+            break;
+    }
+}
+
+static void UpdateKD(EFluidDemoType FluidDemoType)
+{
+    switch (FluidDemoType)
+    {
+        case EFluidDemoType::PERFORMANCE:
+            UpdateFluidPerformanceDemo();
+            break;
+        case EFluidDemoType::RIGID_FLOAT:
+            UpdateRigidFloatDemo();
+            break;
+        default:
+            break;
+    }
+}
+
+
 
 AParticleManager::AParticleManager()
 {
@@ -50,26 +108,26 @@ AParticleManager::AParticleManager()
     RootComponent = Root;
 
     // 【核心】创建 InstancedStaticMeshComponent
-    InstancedMeshComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("InstancedMeshComponent"));
-    InstancedMeshComponent->SetupAttachment(RootComponent);
+    InstancedMeshComponentFluid = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("InstancedMeshComponent"));
+    InstancedMeshComponentFluid->SetupAttachment(RootComponent);
 
     // 设置默认性能选项
-    InstancedMeshComponent->SetMobility(EComponentMobility::Movable);
-    InstancedMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    InstancedMeshComponentFluid->SetMobility(EComponentMobility::Movable);
+    InstancedMeshComponentFluid->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     
 
     // 4. 确保不产生阴影
-    InstancedMeshComponent->SetCastShadow(false);
+    InstancedMeshComponentFluid->SetCastShadow(false);
 
     // （可选）加载默认网格体
     static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(TEXT("/Engine/BasicShapes/Sphere"));
     if (SphereMesh.Succeeded())
     {
-        InstancedMeshComponent->SetStaticMesh(SphereMesh.Object);
+        InstancedMeshComponentFluid->SetStaticMesh(SphereMesh.Object);
         // 检查 BaseMaterial 是否已在蓝图中设置
-        if (BaseMaterial)
+        if (BaseMaterialFluid)
         {
-            InstancedMeshComponent->SetMaterial(0, BaseMaterial);
+            InstancedMeshComponentFluid->SetMaterial(0, BaseMaterialFluid);
         }
         else
         {
@@ -105,7 +163,7 @@ void AParticleManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    /*
+    
     // ---------------------------cmd test begin: --------------------------------
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     if (PC && PC->IsInputKeyDown(EKeys::SpaceBar))
@@ -123,11 +181,11 @@ void AParticleManager::Tick(float DeltaTime)
         ProcessCmd(ParseStringByPipe(TEXT("fluid|system|position|20.00|20.00|20.00")));
     }
     // ---------------------------cmd test end: --------------------------------
-    */
+    
     
     if (fluidWorld)
     {
-        fluidWorld->update(0); 
+        UpdateKD(CurDemoType);
         auto fluid = fluidWorld->getFluid(0);
         check(fluid)
         auto& positionDevice = fluid->pf.getPositionRef();
@@ -142,9 +200,9 @@ void AParticleManager::Tick(float DeltaTime)
 
 void AParticleManager::ClearParticles()
 {
-    if (InstancedMeshComponent)
+    if (InstancedMeshComponentFluid)
     {
-        InstancedMeshComponent->ClearInstances();
+        InstancedMeshComponentFluid->ClearInstances();
     }
     CurrentInstanceCount = 0;
 }
@@ -152,7 +210,7 @@ void AParticleManager::ClearParticles()
 
 void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositions)
 {
-    if (!InstancedMeshComponent)
+    if (!InstancedMeshComponentFluid)
     {
         return;
     }
@@ -175,7 +233,7 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
 
     // 3. 准备固定的变换值 (这些将被并行任务捕获)
     const FQuat RotationAsQuat = FQuat::Identity; // 粒子本身的旋转
-    float scale = 0.005;
+    float scale = 0.005f; // scale = 0.005
     const FVector Scale = FVector(scale, scale, scale);
 
     // 4. 使用 ParallelFor 并行填充缓冲区
@@ -199,7 +257,7 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
 
 void AParticleManager::UpdateParticleTransforms(const TArray<FTransform>& NewTransforms)
 {
-    if (!InstancedMeshComponent)
+    if (!InstancedMeshComponentFluid)
     {
         return;
     }
@@ -221,15 +279,15 @@ void AParticleManager::UpdateParticleTransforms(const TArray<FTransform>& NewTra
     {
         // **数量变化：这是“生成”步骤 (或重新生成)**
         // 清除旧的，然后批量添加新的
-        InstancedMeshComponent->ClearInstances();
-        InstancedMeshComponent->AddInstances(NewTransforms, false /* bShouldReturnIndices */);
+        InstancedMeshComponentFluid->ClearInstances();
+        InstancedMeshComponentFluid->AddInstances(NewTransforms, false /* bShouldReturnIndices */);
     }
     else
     {
         // **数量未变：这是“更新”步骤**
         // 批量更新所有 Transform，这非常快
         //UE_LOG(LogTemp, Warning, TEXT("NewTransforms.Num = %d"), NewTransforms.Num());
-        InstancedMeshComponent->BatchUpdateInstancesTransforms(0, NewTransforms, true /* bWorldSpace */, true /* bMarkRenderStateDirty */);
+        InstancedMeshComponentFluid->BatchUpdateInstancesTransforms(0, NewTransforms, true /* bWorldSpace */, true /* bMarkRenderStateDirty */);
     }
 
     // 缓存新的数量
@@ -242,7 +300,7 @@ void AParticleManager::ProcessCmd(const TArray<FString>& cmdList)
 {
     if (cmdList[1].Contains("create"))
     {
-        CreateFluidSystem();
+        CreateFluidSystem(EFluidDemoType::RIGID_FLOAT);
     }else if (cmdList[1].Contains("system"))
     {
         if (cmdList[2].Contains("position"))
@@ -257,11 +315,11 @@ void AParticleManager::ProcessCmd(const TArray<FString>& cmdList)
 
 void AParticleManager::SetFluidSystemColor(const FVector& Color)
 {
-    DynamicVolumeMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, this);
-    if (DynamicVolumeMaterial)
+    DynamicVolumeMaterialFluid = UMaterialInstanceDynamic::Create(BaseMaterialFluid, this);
+    if (DynamicVolumeMaterialFluid)
     {
-        DynamicVolumeMaterial->SetVectorParameterValue(FName("BaseColor"), FLinearColor(Color.X, Color.Y, Color.Z));
-        InstancedMeshComponent->SetMaterial(0, DynamicVolumeMaterial);
+        DynamicVolumeMaterialFluid->SetVectorParameterValue(FName("BaseColor"), FLinearColor(Color.X, Color.Y, Color.Z));
+        InstancedMeshComponentFluid->SetMaterial(0, DynamicVolumeMaterialFluid);
     }
 }
 
@@ -271,9 +329,11 @@ void AParticleManager::SetFluidSystemPos(const FVector& UEPosition)
     DeltaSDKPos = SDKPos - OriSDKPos;
 }
 
-void AParticleManager::CreateFluidSystem()
+void AParticleManager::CreateFluidSystem(EFluidDemoType DemoType)
 {
-    TestFluidPerformanceDemo(0, nullptr);
+    InitKD(DemoType);
+    CurDemoType = DemoType;
+    
     int numOfParticles = fluidWorld->getFluid(0)->getCurNumParticles();
     PositionHost = VecArray<vec3r, CPU>(numOfParticles);
     ParticlePositions.SetNumUninitialized(numOfParticles);
