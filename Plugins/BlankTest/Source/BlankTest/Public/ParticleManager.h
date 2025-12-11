@@ -59,6 +59,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Particle Manager")
 	void UpdateParticleTransforms(const TArray<FTransform>& NewTransforms);
 
+	
+
 	/**
 	 * 清除所有粒子实例。
 	 */
@@ -90,8 +92,9 @@ private:
 	/** * 一个可重用的缓冲区，用于在 UpdateParticlePositions 中构建 FTransform 数组，
 	 * 避免每帧都重新分配内存。
 	 */
-	TArray<FTransform> TransformBuffer;
-
+	TArray<FTransform> FluidTransformBuffer;
+	TArray<FTransform> RigidOrSandTransformBuffer;
+	
 	TArray<FVector> ParticlePositions;
 
 	UMaterialInstanceDynamic* DynamicVolumeMaterialFluid = nullptr;

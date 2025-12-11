@@ -223,8 +223,7 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
     }
 
     const int32 NewCount = NewPositions.Num();
-
-    // 1. 处理 NewCount 为 0 的情况
+    
     if (NewCount == 0)
     {
         if (CurrentInstanceCount > 0)
@@ -233,33 +232,31 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
         }
         return;
     }
-
-    // 2. 准备 FTransform 数组 (在主线程上调整大小)
-    //    SetNumUninitialized (或 SetNum) 必须在主线程上调用
-    TransformBuffer.SetNumUninitialized(NewCount);
-
-    // 3. 准备固定的变换值 (这些将被并行任务捕获)
+    
+    FluidTransformBuffer.SetNumUninitialized(FluidParticleCount);
+    RigidOrSandTransformBuffer.SetNumUninitialized(RigidOrSandParticleCount);
+    check(NewCount == FluidParticleCount + RigidOrSandParticleCount);
+    
     const FQuat RotationAsQuat = FQuat::Identity; // 粒子本身的旋转
     float scale = 0.005f; // scale = 0.005
     const FVector Scale = FVector(scale, scale, scale);
-
-    // 4. 使用 ParallelFor 并行填充缓冲区
-    // ParallelFor 会自动将 NewCount 个任务分配到多个CPU核心
+    
     ParallelFor(NewCount, [&](int32 i)
     {
-        // 【高效旋转】
         const FVector& InPos = NewPositions[i] + DeltaSDKPos;
         const FVector RotatedPos = CoordsSDK2UE(InPos);
-
-        // 【填充缓冲区】
-        // 索引 'i' 在每个并行任务中都是唯一的，所以写入 TransformBuffer[i] 是线程安全的。
-        TransformBuffer[i].SetComponents(RotationAsQuat, RotatedPos, Scale);
+        
+        if (i < FluidParticleCount)
+        {
+            FluidTransformBuffer[i].SetComponents(RotationAsQuat, RotatedPos, Scale);
+        }else
+        {
+            RigidOrSandTransformBuffer[i - FluidParticleCount].SetComponents(RotationAsQuat, RotatedPos, Scale);
+        }
     });
     // (此时，主线程会等待所有并行任务完成)
-
-    // 5. 调用我们的“高级”更新函数来完成渲染提交
-    // (UpdateParticleTransforms 内部包含了处理“生成”和“更新”的逻辑)
-    UpdateParticleTransforms(TransformBuffer);
+    
+    UpdateParticleTransforms(FluidTransformBuffer);
 }
 
 void AParticleManager::UpdateParticleTransforms(const TArray<FTransform>& NewTransforms)
@@ -273,31 +270,22 @@ void AParticleManager::UpdateParticleTransforms(const TArray<FTransform>& NewTra
 
     if (NewCount == 0)
     {
-        // 如果新数量为 0，则清空
         if (CurrentInstanceCount > 0)
         {
             ClearParticles();
         }
         return;
     }
-
-    // 检查粒子数量是否发生了变化
+    
     if (NewCount != CurrentInstanceCount)
     {
-        // **数量变化：这是“生成”步骤 (或重新生成)**
-        // 清除旧的，然后批量添加新的
         InstancedMeshComponentFluid->ClearInstances();
         InstancedMeshComponentFluid->AddInstances(NewTransforms, false /* bShouldReturnIndices */);
     }
     else
     {
-        // **数量未变：这是“更新”步骤**
-        // 批量更新所有 Transform，这非常快
-        //UE_LOG(LogTemp, Warning, TEXT("NewTransforms.Num = %d"), NewTransforms.Num());
         InstancedMeshComponentFluid->BatchUpdateInstancesTransforms(0, NewTransforms, true /* bWorldSpace */, true /* bMarkRenderStateDirty */);
     }
-
-    // 缓存新的数量
     CurrentInstanceCount = NewCount;
 }
 
