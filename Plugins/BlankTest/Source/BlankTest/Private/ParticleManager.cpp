@@ -278,6 +278,7 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
     // (此时，主线程会等待所有并行任务完成)
     
     UpdateFluidParticleTransforms(FluidTransformBuffer);
+    UpdateRigidOrSandParticleTransforms(RigidOrSandTransformBuffer);
 }
 
 static void UpdateParticleTransforms(const TArray<FTransform>& NewTransforms, UInstancedStaticMeshComponent*& InstancedMeshComponent, int32& CurInstanceCount)
