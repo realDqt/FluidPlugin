@@ -114,17 +114,18 @@ AParticleManager::AParticleManager()
     USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
     RootComponent = Root;
 
-    // 【核心】创建 InstancedStaticMeshComponent
+
     InstancedMeshComponentFluid = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("InstancedMeshComponent"));
     InstancedMeshComponentFluid->SetupAttachment(RootComponent);
-
-    // 设置默认性能选项
     InstancedMeshComponentFluid->SetMobility(EComponentMobility::Movable);
     InstancedMeshComponentFluid->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    
-
-    // 4. 确保不产生阴影
     InstancedMeshComponentFluid->SetCastShadow(false);
+
+    InstancedMeshComponentRigidOrSand = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("InstancedMeshComponent2"));
+    InstancedMeshComponentRigidOrSand->SetupAttachment(RootComponent);
+    InstancedMeshComponentRigidOrSand->SetMobility(EComponentMobility::Movable);
+    InstancedMeshComponentRigidOrSand->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    InstancedMeshComponentRigidOrSand->SetCastShadow(false);
 
     // （可选）加载默认网格体
     static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(TEXT("/Engine/BasicShapes/Sphere"));
