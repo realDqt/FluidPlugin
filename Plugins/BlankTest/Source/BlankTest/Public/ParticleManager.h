@@ -93,7 +93,6 @@ private:
 	TArray<FTransform> TransformBuffer;
 
 	TArray<FVector> ParticlePositions;
-	VecArray<vec3r, CPU> PositionHost;
 
 	UMaterialInstanceDynamic* DynamicVolumeMaterialFluid = nullptr;
 	UMaterialInstanceDynamic* DynamicVolumeMaterialRigidOrSand = nullptr;

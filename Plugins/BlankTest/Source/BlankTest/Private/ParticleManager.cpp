@@ -18,6 +18,9 @@ static FVector OriSDKPos = FVector(-4, 9, -4);
 static FVector DeltaSDKPos = FVector(0, 0, 0);
 static int frame = 0;
 
+static int FluidParticleCount = 0;
+static int RigidOrSandParticleCount = 0;
+
 static void InitFluidPerformanceDemo(int argc, char** argv)
 {
     cudaInit(argc, argv);
@@ -30,7 +33,8 @@ static void InitFluidPerformanceDemo(int argc, char** argv)
     if (fluidIndex < 0) {
         exit(0);
     }
-    printf("水体粒子数：%d\n", fluidWorld->getFluid(fluidIndex)->getCurNumParticles());
+    FluidParticleCount = fluidWorld->getFluid(fluidIndex)->getCurNumParticles();
+    RigidOrSandParticleCount = 0;
 
     fluidWorld->completeInit(fluidIndex);
     
@@ -49,12 +53,13 @@ static void InitRigidFloatDemo(int argc, char** argv)
     fluidWorld = new FluidWorld(worldMin, worldMax);
     int fluidIndex = fluidWorld->initFluidSystem(make_vec3r(-4, 9, 0), make_vec3r(20, 18, 20), 0.0f, 0.05f, true);
 
+    FluidParticleCount = fluidWorld->getFluid(fluidIndex)->getCurNumParticles();
     fluidWorld->addCube(make_vec3r(10, 10, -5), make_vec3r(4.0));
     fluidWorld->addCube(make_vec3r(10, 10, 5), make_vec3r(4.0));
     if (fluidIndex < 0) {
         exit(0);
     }
-
+    RigidOrSandParticleCount = fluidWorld->getFluid(fluidIndex)->getCurNumParticles() - FluidParticleCount;
     fluidWorld->completeInit(fluidIndex);
 }
 
@@ -79,6 +84,8 @@ static void InitKD(EFluidDemoType FluidDemoType)
         default:
             break;
     }
+
+    std::cout << "Fluid: " << FluidParticleCount << " RigidOrSand: " << RigidOrSandParticleCount << std::endl;
 }
 
 static void UpdateKD(EFluidDemoType FluidDemoType)
@@ -189,8 +196,7 @@ void AParticleManager::Tick(float DeltaTime)
         auto fluid = fluidWorld->getFluid(0);
         check(fluid)
         auto& positionDevice = fluid->pf.getPositionRef();
-        physeng::checkCudaError(cudaMemcpy(ParticlePositions.GetData(), positionDevice.m_data, PositionHost.size()*sizeof(vec3r), cudaMemcpyDeviceToHost));
-        check(PositionHost.size() == ParticlePositions.Num());
+        physeng::checkCudaError(cudaMemcpy(ParticlePositions.GetData(), positionDevice.m_data, ParticlePositions.Num()*sizeof(vec3r), cudaMemcpyDeviceToHost));
         UpdateParticlePositions(ParticlePositions);
     }
     else {
@@ -335,7 +341,6 @@ void AParticleManager::CreateFluidSystem(EFluidDemoType DemoType)
     CurDemoType = DemoType;
     
     int numOfParticles = fluidWorld->getFluid(0)->getCurNumParticles();
-    PositionHost = VecArray<vec3r, CPU>(numOfParticles);
     ParticlePositions.SetNumUninitialized(numOfParticles);
 }
 
