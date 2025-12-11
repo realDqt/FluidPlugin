@@ -223,7 +223,7 @@ void AParticleManager::Tick(float DeltaTime)
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     if (PC && PC->IsInputKeyDown(EKeys::SpaceBar))
     {
-        ProcessCmd(ParseStringByPipe(TEXT("fluid|create")));
+        ProcessCmd(ParseStringByPipe(TEXT("fluid|create|performance")));
     }
 
     if (PC && PC->IsInputKeyDown(EKeys::C))
@@ -357,12 +357,31 @@ void AParticleManager::UpdateRigidOrSandParticleTransforms(const TArray<FTransfo
 }
 
 
+static EFluidDemoType Str2DemoType(const FString& str)
+{
+    // FString 重载了 == 运算符，可以直接进行字符串内容比较
+    if (str == TEXT("performance"))
+    {
+        return EFluidDemoType::PERFORMANCE;
+    }
+    else if (str == TEXT("rigid_float"))
+    {
+        return EFluidDemoType::RIGID_FLOAT;
+    }
+    else if (str == TEXT("scour"))
+    {
+        return EFluidDemoType::SCOUR;
+    }
+    
+    // 默认情况
+    return EFluidDemoType::PERFORMANCE;
+}
 
 void AParticleManager::ProcessCmd(const TArray<FString>& cmdList)
 {
     if (cmdList[1].Contains("create"))
     {
-        CreateFluidSystem(EFluidDemoType::RIGID_FLOAT);
+        CreateFluidSystem(Str2DemoType(cmdList[2]));
     }else if (cmdList[1].Contains("system"))
     {
         if (cmdList[2].Contains("position"))
@@ -381,7 +400,7 @@ void AParticleManager::ProcessCmd(const TArray<FString>& cmdList)
 void AParticleManager::SetFluidSystemFluidParticleColor(const FVector& Color)
 {
     DynamicVolumeMaterialFluid = UMaterialInstanceDynamic::Create(BaseMaterialFluid, this);
-    if (DynamicVolumeMaterialFluid)
+    if (DynamicVolumeMaterialFluid && InstancedMeshComponentFluid)
     {
         DynamicVolumeMaterialFluid->SetVectorParameterValue(FName("BaseColor"), FLinearColor(Color.X, Color.Y, Color.Z));
         InstancedMeshComponentFluid->SetMaterial(0, DynamicVolumeMaterialFluid);
@@ -391,7 +410,7 @@ void AParticleManager::SetFluidSystemFluidParticleColor(const FVector& Color)
 void AParticleManager::SetFluidSystemRigidOrSandParticleColor(const FVector& Color)
 {
     DynamicVolumeMaterialRigidOrSand = UMaterialInstanceDynamic::Create(BaseMaterialRigidOrSand, this);
-    if (DynamicVolumeMaterialRigidOrSand)
+    if (DynamicVolumeMaterialRigidOrSand && InstancedMeshComponentRigidOrSand)
     {
         DynamicVolumeMaterialRigidOrSand->SetVectorParameterValue(FName("BaseColor"), FLinearColor(Color.X, Color.Y, Color.Z));
         InstancedMeshComponentRigidOrSand->SetMaterial(0, DynamicVolumeMaterialRigidOrSand);
