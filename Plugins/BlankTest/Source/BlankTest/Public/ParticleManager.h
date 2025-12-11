@@ -12,7 +12,7 @@ enum EFluidDemoType : uint
 {
 	PERFORMANCE = 0,
 	RIGID_FLOAT,
-	SPLASH,
+	SCOUR,
 };
 
 UCLASS()

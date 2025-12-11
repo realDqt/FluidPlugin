@@ -71,6 +71,28 @@ static void UpdateRigidFloatDemo()
     frame++;
 }
 
+static void InitScourDemo(int argc, char** argv)
+{
+    cudaInit(argc, argv);
+    vec3r worldMin = make_vec3r(-15, 0, -15), worldMax = make_vec3r(15, 25, 15);
+    fluidWorld = new FluidWorld(worldMin, worldMax);
+    int fluidIndex = fluidWorld->initFluidSystem(make_vec3r(-4, 9, 0), make_vec3r(7, 10, 8)*1.4, 0.0f, 0.05f);
+    FluidParticleCount = fluidWorld->getFluid(fluidIndex)->getCurNumParticles();
+    
+    fluidWorld->addSandpile();
+    RigidOrSandParticleCount = fluidWorld->getFluid(fluidIndex)->getCurNumParticles() - FluidParticleCount;
+
+    fluidWorld->completeInit(fluidIndex);
+}
+
+static void UpdateScourDemo()
+{
+    vec3r worldMin = make_vec3r(-15, 0, -15), worldMax = make_vec3r(15, 25, 15);
+    fluidWorld->setWorldBoundary(worldMin - make_vec3r(6 * sinr(frame * fluidWorld->getDt()), 0, 0), worldMax);
+    fluidWorld->update(0);
+    frame++;
+}
+
 static void InitKD(EFluidDemoType FluidDemoType)
 {
     switch (FluidDemoType)
@@ -81,6 +103,8 @@ static void InitKD(EFluidDemoType FluidDemoType)
         case EFluidDemoType::RIGID_FLOAT:
             InitRigidFloatDemo(0, nullptr);
             break;
+        case EFluidDemoType::SCOUR:
+            InitScourDemo(0, nullptr);
         default:
             break;
     }
@@ -98,6 +122,8 @@ static void UpdateKD(EFluidDemoType FluidDemoType)
         case EFluidDemoType::RIGID_FLOAT:
             UpdateRigidFloatDemo();
             break;
+        case EFluidDemoType::SCOUR:
+            UpdateScourDemo();
         default:
             break;
     }
@@ -331,7 +357,7 @@ void AParticleManager::ProcessCmd(const TArray<FString>& cmdList)
 {
     if (cmdList[1].Contains("create"))
     {
-        CreateFluidSystem(EFluidDemoType::RIGID_FLOAT);
+        CreateFluidSystem(EFluidDemoType::SCOUR);
     }else if (cmdList[1].Contains("system"))
     {
         if (cmdList[2].Contains("position"))
