@@ -228,7 +228,12 @@ void AParticleManager::Tick(float DeltaTime)
 
     if (PC && PC->IsInputKeyDown(EKeys::C))
     {
-        ProcessCmd(ParseStringByPipe(TEXT("fluid|system|color|1.00|0.00|0.00")));
+        ProcessCmd(ParseStringByPipe(TEXT("fluid|system|color|fluid|1.00|0.00|0.00")));
+    }
+
+    if (PC && PC->IsInputKeyDown(EKeys::V))
+    {
+        ProcessCmd(ParseStringByPipe(TEXT("fluid|system|color|rigid_or_sand|0.00|1.00|0.00")));
     }
     
     if (PC && PC->IsInputKeyDown(EKeys::P))
@@ -357,26 +362,39 @@ void AParticleManager::ProcessCmd(const TArray<FString>& cmdList)
 {
     if (cmdList[1].Contains("create"))
     {
-        CreateFluidSystem(EFluidDemoType::SCOUR);
+        CreateFluidSystem(EFluidDemoType::RIGID_FLOAT);
     }else if (cmdList[1].Contains("system"))
     {
         if (cmdList[2].Contains("position"))
         {
             SetFluidSystemPos(cmdList);
-        }else if (cmdList[2].Contains("color"))
+        }else if (cmdList[2].Contains("color") && cmdList[3].Contains("fluid"))
         {
-            SetFluidSystemColor(cmdList);
+            SetFluidSystemFluidParticleColor(cmdList);
+        }else if (cmdList[2].Contains("color") && cmdList[3].Contains("rigid_or_sand"))
+        {
+            SetFluidSystemRigidOrSandParticleColor(cmdList);
         }
     }
 }
 
-void AParticleManager::SetFluidSystemColor(const FVector& Color)
+void AParticleManager::SetFluidSystemFluidParticleColor(const FVector& Color)
 {
     DynamicVolumeMaterialFluid = UMaterialInstanceDynamic::Create(BaseMaterialFluid, this);
     if (DynamicVolumeMaterialFluid)
     {
         DynamicVolumeMaterialFluid->SetVectorParameterValue(FName("BaseColor"), FLinearColor(Color.X, Color.Y, Color.Z));
         InstancedMeshComponentFluid->SetMaterial(0, DynamicVolumeMaterialFluid);
+    }
+}
+
+void AParticleManager::SetFluidSystemRigidOrSandParticleColor(const FVector& Color)
+{
+    DynamicVolumeMaterialRigidOrSand = UMaterialInstanceDynamic::Create(BaseMaterialRigidOrSand, this);
+    if (DynamicVolumeMaterialRigidOrSand)
+    {
+        DynamicVolumeMaterialRigidOrSand->SetVectorParameterValue(FName("BaseColor"), FLinearColor(Color.X, Color.Y, Color.Z));
+        InstancedMeshComponentRigidOrSand->SetMaterial(0, DynamicVolumeMaterialRigidOrSand);
     }
 }
 
@@ -425,10 +443,16 @@ void AParticleManager::SetFluidSystemPos(const TArray<FString>& cmdList)
     SetFluidSystemPos(UEPos);
 }
 
-void AParticleManager::SetFluidSystemColor(const TArray<FString>& cmdList)
+void AParticleManager::SetFluidSystemFluidParticleColor(const TArray<FString>& cmdList)
 {
     FVector Color = StrArr2FVec(cmdList);
-    SetFluidSystemColor(Color);
+    SetFluidSystemFluidParticleColor(Color);
+}
+
+void AParticleManager::SetFluidSystemRigidOrSandParticleColor(const TArray<FString>& cmdList)
+{
+    FVector Color = StrArr2FVec(cmdList);
+    SetFluidSystemRigidOrSandParticleColor(Color);
 }
 
 FVector AParticleManager::CoordsSDK2UE(const FVector& SDKPosition)

@@ -74,8 +74,9 @@ public:
 
 	void SetFluidSystemPos(const TArray<FString>& cmdList);
 
-	void SetFluidSystemColor(const TArray<FString>& cmdList);
-
+	void SetFluidSystemFluidParticleColor(const TArray<FString>& cmdList);
+	
+	void SetFluidSystemRigidOrSandParticleColor(const TArray<FString>& cmdList);
 private:
 	/** 缓存当前实例的数量，用于检测变化 */
 	int32 CurrentFluidInstanceCount = 0;
@@ -94,7 +95,8 @@ private:
 	
 	void SetFluidSystemPos(const FVector& Position);
 
-	void SetFluidSystemColor(const FVector& Color);
+	void SetFluidSystemFluidParticleColor(const FVector& Color);
+	void SetFluidSystemRigidOrSandParticleColor(const FVector& Color);
 
 	FVector CoordsSDK2UE(const FVector& UEPosition);
 	FVector CoordsUE2SDK(const FVector& SDKPosition);
