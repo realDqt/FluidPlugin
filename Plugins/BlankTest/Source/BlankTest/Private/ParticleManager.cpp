@@ -218,7 +218,8 @@ void AParticleManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    
+
+    /*
     // ---------------------------cmd test begin: --------------------------------
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     if (PC && PC->IsInputKeyDown(EKeys::SpaceBar))
@@ -241,7 +242,7 @@ void AParticleManager::Tick(float DeltaTime)
         ProcessCmd(ParseStringByPipe(TEXT("fluid|system|position|20.00|20.00|20.00")));
     }
     // ---------------------------cmd test end: --------------------------------
-    
+    */
     
     if (fluidWorld)
     {
