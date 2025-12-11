@@ -127,8 +127,9 @@ AParticleManager::AParticleManager()
     InstancedMeshComponentRigidOrSand->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     InstancedMeshComponentRigidOrSand->SetCastShadow(false);
 
-    // （可选）加载默认网格体
+    
     static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(TEXT("/Engine/BasicShapes/Sphere"));
+    // fluid
     if (SphereMesh.Succeeded())
     {
         InstancedMeshComponentFluid->SetStaticMesh(SphereMesh.Object);
@@ -146,6 +147,26 @@ AParticleManager::AParticleManager()
     {
         UE_LOG(LogTemp, Error, TEXT("AParticleManager: Could not find default Sphere mesh! Please set one in the Blueprint."));
     }
+
+    // rigid or sand
+    if (SphereMesh.Succeeded())
+    {
+        InstancedMeshComponentRigidOrSand->SetStaticMesh(SphereMesh.Object);
+        // 检查 BaseMaterial 是否已在蓝图中设置
+        if (BaseMaterialRigidOrSand)
+        {
+            InstancedMeshComponentRigidOrSand->SetMaterial(0, BaseMaterialRigidOrSand);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("AParticleManager: 'BaseMaterialRigidOrSand' is not set in the Blueprint! Cannot create dynamic material."));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("AParticleManager: Could not find default Sphere mesh! Please set one in the Blueprint."));
+    }
+    
 }
 
 void AParticleManager::BeginPlay()
@@ -211,7 +232,7 @@ void AParticleManager::ClearParticles()
     {
         InstancedMeshComponentFluid->ClearInstances();
     }
-    CurrentInstanceCount = 0;
+    CurrentFluidInstanceCount = 0;
 }
 
 
@@ -226,7 +247,7 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
     
     if (NewCount == 0)
     {
-        if (CurrentInstanceCount > 0)
+        if (CurrentFluidInstanceCount > 0)
         {
             ClearParticles();
         }
@@ -256,12 +277,12 @@ void AParticleManager::UpdateParticlePositions(const TArray<FVector>& NewPositio
     });
     // (此时，主线程会等待所有并行任务完成)
     
-    UpdateParticleTransforms(FluidTransformBuffer);
+    UpdateFluidParticleTransforms(FluidTransformBuffer);
 }
 
-void AParticleManager::UpdateParticleTransforms(const TArray<FTransform>& NewTransforms)
+static void UpdateParticleTransforms(const TArray<FTransform>& NewTransforms, UInstancedStaticMeshComponent*& InstancedMeshComponent, int32& CurInstanceCount)
 {
-    if (!InstancedMeshComponentFluid)
+    if (!InstancedMeshComponent)
     {
         return;
     }
@@ -270,23 +291,37 @@ void AParticleManager::UpdateParticleTransforms(const TArray<FTransform>& NewTra
 
     if (NewCount == 0)
     {
-        if (CurrentInstanceCount > 0)
+        if (CurInstanceCount > 0)
         {
-            ClearParticles();
+            if (InstancedMeshComponent)
+            {
+                InstancedMeshComponent->ClearInstances();
+            }
+            CurInstanceCount = 0;
         }
         return;
     }
     
-    if (NewCount != CurrentInstanceCount)
+    if (NewCount != CurInstanceCount)
     {
-        InstancedMeshComponentFluid->ClearInstances();
-        InstancedMeshComponentFluid->AddInstances(NewTransforms, false /* bShouldReturnIndices */);
+        InstancedMeshComponent->ClearInstances();
+        InstancedMeshComponent->AddInstances(NewTransforms, false /* bShouldReturnIndices */);
     }
     else
     {
-        InstancedMeshComponentFluid->BatchUpdateInstancesTransforms(0, NewTransforms, true /* bWorldSpace */, true /* bMarkRenderStateDirty */);
+        InstancedMeshComponent->BatchUpdateInstancesTransforms(0, NewTransforms, true /* bWorldSpace */, true /* bMarkRenderStateDirty */);
     }
-    CurrentInstanceCount = NewCount;
+    CurInstanceCount = NewCount;
+}
+
+void AParticleManager::UpdateFluidParticleTransforms(const TArray<FTransform>& NewTransforms)
+{
+    UpdateParticleTransforms(NewTransforms, InstancedMeshComponentFluid, CurrentFluidInstanceCount);
+}
+
+void AParticleManager::UpdateRigidOrSandParticleTransforms(const TArray<FTransform>& NewTransforms)
+{
+    UpdateParticleTransforms(NewTransforms, InstancedMeshComponentRigidOrSand, CurrentRigidOrSandInstanceCount);
 }
 
 

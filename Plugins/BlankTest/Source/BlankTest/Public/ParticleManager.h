@@ -43,21 +43,12 @@ public:
 
 	// --- 控制函数 ---
 
-	/**
-	 * 【核心更新函数】用于“生成”或“更新”所有粒子的位置。
-	 * 它将自动使用在蓝图中设置的 ParticleScale 和 ParticleRotation。
-	 *
-	 * @param NewPositions - 所有粒子的新世界坐标数组。
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Particle Manager")
+
 	void UpdateParticlePositions(const TArray<FVector>& NewPositions);
 
-	/**
-	 * （高级功能）如果你需要完全控制，此函数仍然可用。
-	 * @param NewTransforms - 所有粒子的新 Transform 数组。
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Particle Manager")
-	void UpdateParticleTransforms(const TArray<FTransform>& NewTransforms);
+
+	void UpdateFluidParticleTransforms(const TArray<FTransform>& NewTransforms);
+	void UpdateRigidOrSandParticleTransforms(const TArray<FTransform>& NewTransforms);
 
 	
 
@@ -87,7 +78,8 @@ public:
 
 private:
 	/** 缓存当前实例的数量，用于检测变化 */
-	int32 CurrentInstanceCount = 0;
+	int32 CurrentFluidInstanceCount = 0;
+	int32 CurrentRigidOrSandInstanceCount = 0;
 
 	/** * 一个可重用的缓冲区，用于在 UpdateParticlePositions 中构建 FTransform 数组，
 	 * 避免每帧都重新分配内存。
